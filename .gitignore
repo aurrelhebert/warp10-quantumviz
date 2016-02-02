@@ -1,0 +1,7 @@
+bower_components
+node_modules
+dist
+artifacts
+test
+tools
+_old_elements

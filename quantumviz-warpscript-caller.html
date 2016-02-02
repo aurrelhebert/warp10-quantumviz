@@ -1,0 +1,163 @@
+<link rel="import" href=" ../polymer/polymer.html">
+<link rel="import" href=" ../iron-ajax/iron-ajax.html">
+
+<dom-module name="quantumviz-warpscript-caller" >
+  <template>
+
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+
+    <iron-ajax
+      id="xhr"
+      url="{{baseUrl}}"
+      method='POST'
+      body='{{warpscript}}'
+      handle-as="text"
+      on-response="receivedResponse"
+      on-error="receivedError"></iron-ajax>
+
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "quantumviz-warpscript-caller",
+    properties: {
+      /**
+       * Base URL of WarpScript platform
+       */
+      baseUrl: {
+        type: String,
+        value: ""
+      },
+      /**
+       * WarpScript script to execute
+       */
+      warpscript:{
+        type: String,
+        value: "",
+        observer: 'warpscriptChanged'
+      },
+      /**
+       * Stack received from server
+       */
+      data: {
+        type: Object,
+        notify: true
+      },
+      /**
+       * If `reload > 0` it's the number of seconds between two calls
+       * to the WarpScript server
+       */
+      reload: {
+        type: Number,
+        value: -1
+      },
+      /**
+       * No call is done while `blockCalls` is 1
+       */
+      blockCalls: {
+        type: Number,
+        value: 0,
+        observer: "blockChanged"
+      },
+      /**
+       * No call is done while `call` is `0`
+       */
+      call: {
+        type: Number,
+        value: 0,
+        observer: "callChanged"
+      },
+      /**
+       * Boolean to indicate loading in progress
+       */
+      loading: {
+       type: Boolean,
+       value:false,
+       notify: true
+     },
+    },
+    attached: function() {
+      // console.debug("[quantumviz-warpscript-caller] attached");
+      this.initCall();
+    },
+    warpscriptChanged: function() {
+      // console.debug("[quantumviz-warpscript-caller] called via warpscriptChanged", this.warpscript);
+      this.initCall();
+    },
+    callChanged: function() {
+      // console.debug("[quantumviz-warpscript-caller] called via callChanged");
+      this.initCall();
+    },
+    blockChanged: function() {
+     // console.debug("[quantumviz-warpscript-caller] called via blockChanged");
+      this.initCall();
+    },
+    initCall: function() {
+
+      if (!this.isAttached) {
+        // If widget isn't attached, we do nothing yet
+        // console.debug("[quantumviz-warpscript-caller] initCall - is not attached, quitting");
+        return;
+      }
+
+      if (this.blockCalls) {
+        // If calls are blocked, we do nothing yet
+        // console.debug("[quantumviz-warpscript-caller] initCall - calls blocked, this.blockCalls="+this.blockCalls);
+        return;
+      }
+
+
+      if (!this.call) {
+        // If calls are blocked, we do nothing yet
+        // console.debug("[quantumviz-warpscript-caller] initCall - calls not allowed yet, this.call="+this.call);
+        return;
+      }
+
+      if (this.warpscript.length <= 0) {
+        // If we haven't an WarpScript script, we do nothing yet
+        // console.debug("[quantumviz-warpscript-caller] initCall - no warpscript script", this.warpscript);
+        return;
+      }
+
+      // console.debug("[quantumviz-warpscript-caller] initCall - attached and ready to call, baseURL", this.baseUrl);
+
+      if (this.reload > 0) {
+        // If `reload > 0` set reloading interval and call, else call directly
+        this.reloadInterval = parseFloat(this.reload)*1000;
+        this.doCallWithReload();
+      } else {
+        this.doCall();
+      }
+    },
+    doCall: function() {
+      // Activate spinner
+      this.loading = true;
+      // console.debug("[quantumviz-warpscript-caller] doCall - Calling with WarpScript script", this.warpscript);
+      this.$.xhr.generateRequest();
+    },
+    doCallWithReload: function() {
+      // console.debug("[quantumviz-warpscript-caller] doReload called with interval "+this.reloadInterval+" ms");
+      this.doCall();
+      this.async(this.doCallWithReload, this.reloadInterval);
+    },
+
+    receivedResponse: function(event, ironRequest) {
+      // console.debug("[quantumviz-warpscript-caller] receivedResponse - Updated!", ironRequest.response);
+      this.data = ironRequest.response;
+      // Desctivate spinner
+      this.loading = false;
+    },
+    receivedError: function(event, ironRequest) {
+      // console.debug("[quantumviz-warpscript-caller] receivedError - Updated!");
+      this.data = null;
+      // Desctivate spinner
+      this.loading = false;
+    },
+
+  })
+</script>

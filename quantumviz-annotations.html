@@ -1,0 +1,66 @@
+<link rel="import" href=" ../polymer/polymer.html">
+<link rel="import" href="../warp10-quantumviz/quantumviz-annotation.html">
+<link rel="import" href="../warp10-quantumviz/quantumviz-tools.html">
+
+<dom-module id="quantumviz-annotations">
+  <style>
+    :host {
+      display: block;
+    }
+    quantumviz-annotation {
+      margin-top: 2px;
+      margin-bottom: 2px;
+    }
+    #spacer {
+      height: 50px;
+    }
+  </style>
+  <template>
+    <div id="annotations">
+      <template is="dom-repeat" items="{{annotations}}" as="annotation">
+        <quantumviz-annotation width="500" time-bounds="{{timeBounds}}"
+          annotation="{{annotation}}" vert-guide="{{vertGuide}}">
+        </quantumviz-annotation>
+      </template>
+    </div>
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "quantumviz-annotations",
+    properties: {
+      data: {
+        type: Object
+      },
+      annotations: {
+        computed: "getAnnotations(data)"
+      },
+      timeBounds: {
+        type: Object,
+        observer: 'contentChanged'
+      },
+      vertGuide: {
+        type: Number,
+        notify: true
+      }
+    },
+    ready: function() {
+    },
+    attached: function() {
+      this.attached = true;
+    },
+    contentChanged: function() {
+      if (!this.attached) {
+        return
+      }
+      //console.debug("[quantumviz-annotations] bounds", this.timeBounds);
+      //console.debug("[quantumviz-annotations] annotations offset", this.$.annotations.offsetTop);
+    },
+    getAnnotations: function(){
+      var annotations = quantumvizGts.getAnnotations(this.data)
+      //console.debug("[quantumviz-annotations] annotations", annotations);
+      return annotations;
+    }
+  });
+</script>

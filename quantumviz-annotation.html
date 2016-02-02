@@ -1,0 +1,224 @@
+<link rel="import" href=" ../polymer/polymer.html">
+<link rel="import" href="../warp10-quantumviz/quantumviz-tools.html">
+
+<dom-module id="quantumviz-annotation">
+  <style>
+    :host {
+      display: block;
+    }
+    #annotation {
+      padding-left: 110px;
+      padding-right: 20px;
+    }
+
+    svg {
+      border: solid 1px black;
+      height: 20px;
+      position: relative;
+
+    }
+    #tooltip {
+      position: absolute;
+      min-width: 200px;
+      height: auto;
+      padding: 10px;
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    #tooltip.hidden {
+        display: none;
+    }
+
+    #tooltip p {
+        margin: 0;
+        font-family: sans-serif;
+        font-size: 10pt;
+        line-height: 20px;
+    }
+    .gts-classname {
+      color: #0074D9;
+    }
+
+    .gts-labelname {
+      color: #3d9970;
+    }
+
+    .gts-separator {
+      color: #bbbbbb;
+    }
+
+    .gts-labelvalue {
+      color: #AAAAAA;
+      font-style: italic;
+    }
+  </style>
+  <template>
+    <div id="annotation">
+      <svg></svg>
+    </div>
+    <div id="tooltip" class="hidden">
+      <p><strong id="timestamp"></strong></p>
+      <p><span id="name"></span> - <span id="value"></span></p>
+    </div>
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "quantumviz-annotation",
+    properties: {
+      width: {
+        type: Number,
+        value: -1
+      },
+      timeBounds: {
+        type: Object,
+        observer: 'contentChanged'
+      },
+      annotation: {
+        type: Array
+      },
+      vertGuide: {
+        type: Number,
+        notify: true
+      }
+    },
+    ready: function() {
+    },
+    setDimensions: function() {
+      // Dimensions
+      if (this.width <0) {
+        this.$.annotation.style.width = "100%";
+        this.$$('svg').style.width = "100%";
+      } else {
+        this.$.annotation.style.width = (parseInt(this.width)+50)+"px";
+        this.$$('svg').style.width = (parseInt(this.width)-80)+"px";
+      }
+    },
+    attached: function() {
+      this.attached = true;
+    },
+    contentChanged: function() {
+      this.MAX_MARKER_WIDTH = 10;
+      if (!this.attached) {
+        return
+      }
+
+      console.debug("[quantumviz-annotation] Content changed");
+
+      this.setDimensions();
+
+      var svg = d3.select(this.$.annotation).select("svg");
+
+      var width = this.$$('svg').offsetWidth;
+      if (width == 0) {
+        width = parseInt(this.width)-80;
+      }
+
+      var scale = d3.scale.linear()
+        .domain([this.timeBounds.min, this.timeBounds.max])
+        .range([0, width])
+
+      var annotation = this.annotation;
+      var context = this;
+
+      var markerWidth = width / annotation.values.length - 2
+      console.log ("markerWidth", markerWidth)
+      if (markerWidth > this.MAX_MARKER_WIDTH ) {
+        markerWidth =  this.MAX_MARKER_WIDTH;
+      }
+      console.log ("this.MAX_MARKER_WIDTH",this.MAX_MARKER_WIDTH)
+      console.log ("markerWidth", markerWidth)
+
+      var keyFormatter = function(d, i) {
+
+        var splitted = d.split(/[{}]/);
+        var classname = splitted[0];
+        var html = "<span class='style-scope quantumviz-annotation gts-classname'>"+classname+"</span>"
+        if (splitted.length > 1) {
+          html += "<span class='style-scope quantumviz-annotation gts-separator'>{</span>";
+
+          var labels = []
+          splitted[1].split(',').forEach(function(it) {
+            var item = it.split('=');
+            labels.push("<span class='style-scope quantumviz-annotation gts-labelname'>"
+                  +item[0]+"</span><span class='gts-separator'>=</span>"
+                  + "<span class='style-scope quantumviz-annotation gts-labelvalue'>"+item[1]+"</span>");
+          })
+          html += labels.join("<span class='style-scope quantumviz-annotation gts-separator'>,</span>")
+                  + "<span class='style-scope quantumviz-annotation gts-separator'>}</span>";
+        }
+        return html;
+      };
+
+
+
+      svg.selectAll("rect")
+        .data(annotation.values)
+        .enter()
+        .append("rect")
+        .attr("x", function(d,i) {
+          //console.log("value",d.x)
+          //console.log("value scaled",scale(d.x))
+          return scale(d.x);
+        })
+        .attr("y", 0)
+        .attr("width", markerWidth)
+        .attr("height", 20)
+        .attr("fill", annotation.color)
+        .attr("stroke", "white")
+        .attr("stroke-width", 2)
+        .on("mouseover", function(d) {
+          d3.select(this)
+            .attr("fill", "orange");
+
+          d3.select("#tooltip")
+            .select("#timestamp")
+            .text(d3.time.format.utc('%Y-%m-%dT%H:%M:%SZ')(new Date(d.x)));
+
+          d3.select("#tooltip")
+            .select("#name")
+            .html(keyFormatter(annotation.key));
+
+          d3.select("#tooltip")
+            .select("#value")
+            .text(d.y);
+
+          //Show the tooltip
+          d3.select("#tooltip").classed("hidden", false);
+
+          var tooltipWidth = d3.select("#tooltip").node().getBoundingClientRect().width;
+          var xPosition = d3.select(this).node().getBoundingClientRect().left + markerWidth/2 - tooltipWidth/2;
+          if (xPosition < 0) { xPosition = 0; }
+          var yPosition = d3.select(this).node().getBoundingClientRect().top - 60 + window.scrollY;
+
+          /*
+          console.log("yPosition", d3.select(this).node().getBoundingClientRect().top);
+          console.log("scrollY", window.scrollY);
+          */
+
+          //Update the tooltip position and value
+          d3.select("#tooltip")
+            .style("left", xPosition + "px")
+            .style("top", yPosition + "px")
+
+          context.vertGuide = d3.select(this).node().getBoundingClientRect().left + markerWidth/2;
+
+        })
+        .on("mouseout", function(d) {
+          d3.select(this)
+            // .transition()
+            // .duration(125)
+            .attr("fill", annotation.color);
+
+          //Hide the tooltip
+          d3.select("#tooltip").classed("hidden", true);
+          context.vertGuide = -1;
+        });
+    }
+  })
+</script>
