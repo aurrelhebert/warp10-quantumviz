@@ -1,5 +1,5 @@
 <link rel="import" href=" ../polymer/polymer.html">
-<link rel="import" href="../warp10-quantumviz/quantumviz-warpscript-caller.html">
+<link rel="import" href="../warp10-iron/warp10-warpscript-caller.html">
 
 <dom-module name="warp10-img" >
   <template>
@@ -14,13 +14,13 @@
 
     <img src={{img}}></img>
 
-    <quantumviz-warpscript-caller
+    <warp10-warpscript-caller
       id="warpscript-caller"
       base-url="{{baseURL}}" warpscript="{{warpscriptScript}}"
       data="{{data}}"  reload="{{reload}}"
       block-calls="{{blockCalls}}" call="{{call}}"
       loading="{{loading}}">
-    </quantumviz-warpscript-caller>
+    </warp10-warpscript-caller>
 
   </template>
 </dom-module>
@@ -83,7 +83,7 @@
      * Computed properties
      ********************************/
     getBaseUrl: function() {
-      return this.host + "/api/v0/exec"+this.oldPath;
+      return this.host + "/exec" + this.oldPath;
     },
 
     /********************************
@@ -160,10 +160,10 @@
      ********************************/
     getImageContent: function() {
 
-      if (!this.isArray(JSON.parse(this.data))) {
+      if (!this.isArray(this.data)) {
         return
       }
-      var response = JSON.parse(this.data)[0];
+      var response = this.data[0];
       // console.debug("[warp10-img] getImageContent \n", response);
       if (/^data:image/.test(response)) {
         this.img = response
