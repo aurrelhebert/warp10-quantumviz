@@ -1,8 +1,8 @@
 <link rel="import" href=" ../polymer/polymer.html">
-<link rel="import" href="../warp10-iron/warp10-warpscript-caller.html">
 <link rel="import" href="../warp10-quantumviz/quantumviz-external-deps.html">
 <link rel="import" href="../warp10-quantumviz/quantumviz-tools.html">
 <link rel="import" href="../warp10-quantumviz/quantumviz-annotations.html">
+<link rel="import" href="../warp10-quantumviz/quantumviz-warpscript-caller.html">
 
 
 <!--
@@ -98,13 +98,13 @@ Viz-only version of Quantum widget
         <svg id="svg" class="nvd3 svg" overflow="visible"></svg>
       </div>
 
-      <warp10-warpscript-caller
+      <quantumviz-warpscript-caller
         id="warpscript-caller"
         base-url="{{baseURL}}" warpscript="{{warpscriptScript}}"
         data="{{data}}"  reload="{{reload}}"
         block-calls="{{blockCalls}}"  call="{{call}}"
         loading="{{loading}}">
-      </warp10-warpscript-caller>
+      </quantumviz-warpscript-caller>
     </div>
   </template>
 </dom-module>
@@ -235,7 +235,7 @@ Viz-only version of Quantum widget
       // console.debug("[test-quantumviz] configure - end");
     },
     getBaseUrl: function() {
-      return this.host + "/exec"+this.oldPath;
+      return this.host + "/api/v0/exec"+this.oldPath;
     },
     configureChart: function() {
       // Wrapping in nv.addGraph allows for '0 timeout render', stores rendered charts in nv.graphs, and may do more in the future... it's NOT required

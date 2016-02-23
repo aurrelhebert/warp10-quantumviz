@@ -1,7 +1,6 @@
 <link rel="import" href=" ../polymer/polymer.html">
-<link rel="import" href=" ../iron-ajax/iron-ajax.html">
 <link   rel="import" href="../warp10-quantumviz/warp10-quantumviz.html">
-<link   rel="import" href=" ../leaflet-map/leaflet-map.html">
+<script src="../Leaflet.MakiMarkers/Leaflet.MakiMarkers.js"></script>
 <dom-module name="warp10-geoquantumviz" >
   <style>
     :host {
@@ -27,7 +26,7 @@
       show-axis="{{showAxis}}"  tooltip="{{tooltip}}"
       line-width="{{lineWidth}}" reload="{{reload}}"
       current-values="{{currentValues}}" host="{{host}}"
-      content="{{content}}" data="{{data}}"
+      content="{{content}}" data="{{data}}" old-path="{{oldPath}}"
       >
     </warp10-quantumviz>
 
@@ -76,6 +75,10 @@
             type: Object,
             observer: 'dataChanged',
             notify: true
+          },
+          oldPath: {
+            type: String,
+            value: ""
           }
       },
       ready: function() {
@@ -85,8 +88,13 @@
         this.currentValuesMarkers = [];
       },
       dataChanged: function() {
+
+
         this.pathData = quantumvizGts.toLeafletMapPaths(this.data);
-        console.log("Data changed", this.pathData);
+        this.positionsData = quantumvizGts.toLeafletMapPositionArray(this.data);
+        console.debug("[warp10-geoquantumviz] Data changed - path data", this.pathData);
+        console.debug("[warp10-geoquantumviz] Data changed - position arrays", this.positionsData);
+
         var map = this.$.map.map
 
         var circleRadius = map.getBounds().getSouthWest().distanceTo(map.getBounds().getNorthEast())/30;
@@ -105,6 +113,19 @@
             this.currentValuesMarkers.push(L.circleMarker());
           }
         }
+
+        // Create the positions arrays
+        for (var i=0; i< this.positionsData.length; i++) {
+          if (this.positionsData[i].path) {
+            L.polyline(this.positionsData[i].positions, {color: this.positionsData[i].color, opacity: 1} ).addTo(map);
+          } else {
+            var icon = L.MakiMarkers.icon({icon: this.positionsData[i].key, color: this.positionsData[i].color, size: "m"});
+            for (var j=0; j<this.positionsData[i].positions.length; j++ ) {
+              L.marker(this.positionsData[i].positions[j], {icon: icon, opacity: 1} ).addTo(map);
+            }
+          }
+        }
+
 
         // Fit map to curves
         map.fitBounds(quantumvizGts.getBoundsArray(this.pathData));

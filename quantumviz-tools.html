@@ -1,3 +1,5 @@
+<link rel="import" href="../warp10-iron/warp10-gts-tools.html">
+
 <script>
   (function() {
     var quantumvizGts = {};
@@ -35,14 +37,14 @@
         return false;
       }
 
-      var response = JSON.parse(data)[0];
+      var response = data[0];
 
       var chartData = {}
 
       var sparklines = [];
       for (var i=0; i< response.gts.length; i++) {
         // Let's verify if it's a GTS to plot
-        if (quantumvizGts.isGtsToPlot(response.gts[i])) {
+        if (gtsTools.isGtsToPlot(response.gts[i])) {
           var sl = quantumvizGts.gtsToNvd3(response.gts[i]);
           if (response.params[i].key !== undefined) {
             sl.key = response.params[i].key;
@@ -94,9 +96,9 @@
       if (!quantumvizGts.isValidResponse(data)) {
         return false;
       }
-      var response = JSON.parse(data)[0];
+      var response = data[0];
 
-      if (!quantumvizGts.isArray(response.gts)) {
+      if (!gtsTools.isArray(response.gts)) {
         return []
       }
 
@@ -104,7 +106,7 @@
 
       for (var i=0; i< response.gts.length; i++) {
         // Let's verify if it's a GTS to plot
-        if (quantumvizGts.isGtsToAnnotate(response.gts[i])) {
+        if (gtsTools.isGtsToAnnotate(response.gts[i])) {
           var annotation = quantumvizGts.gtsToNvd3(response.gts[i]);
           if ((response.params !== undefined)
               && (response.params[i].key !== undefined)) {
@@ -125,6 +127,42 @@
       return annotations;
     };
 
+    /**
+     * Transforms quantumviz response object into leaflet-map position array
+     */
+    quantumvizGts.toLeafletMapPositionArray = function(data) {
+
+      if (!quantumvizGts.isValidResponse(data)) {
+        return false;
+      }
+
+      var response = data[0];
+
+
+      var positions = [];
+
+      for (var i=0; i< response.gts.length; i++) {
+        if (gtsTools.isPositionArray(response.gts[i])) {
+          var posArray = {};
+          posArray = response.gts[i];
+
+          if (response.params[i].key !== undefined) {
+            posArray.key = response.params[i].key;
+          } else if(posArray.key === undefined ){
+            posArray.key = "circle";
+          }
+
+          if (response.params[i].color !== undefined) {
+            posArray.color = response.params[i].color;
+          } else {
+            posArray.color = quantumvizGts.palette[i];
+          }
+          positions.push(posArray);
+        }
+      }
+
+      return positions;
+    }
 
     /***********************************************************************************
     * Transforms quantumviz response object into leaflet-map paths
@@ -135,25 +173,29 @@
         return false;
       }
 
-      var response = JSON.parse(data)[0];
+      var response = data[0];
 
       var paths = [];
 
       for (var i=0; i< response.gts.length; i++) {
 
-        var sl = {}
+        if (gtsTools.isGtsToPlot(response.gts[i])) {
+          var sl = {}
 
-        sl.path = quantumvizGts.gtsToPath(response.gts[i]);
+          sl.path = gtsTools.gtsToPath(response.gts[i]);
 
-        if (response.params[i].key !== undefined) {
-          sl.key = response.params[i].key;
+          if (response.params[i].key !== undefined) {
+            sl.key = response.params[i].key;
+          }
+
+          if (response.params[i].color !== undefined) {
+            sl.color = response.params[i].color;
+          } else {
+            sl.color = quantumvizGts.palette[i];
+          }
+
+          paths.push(sl);
         }
-
-        if (response.params[i].color !== undefined) {
-          sl.color = response.params[i].color;
-        }
-
-        paths.push(sl);
       }
       //console.debug("Paths",paths);
 
@@ -192,35 +234,7 @@
     };
 
 
-    /***********************************************************************************
-    * Tranform a gts @gts into path
-    ***********************************************************************************/
-    quantumvizGts.gtsToPath = function(gts) {
-      var path = [];
 
-      // Sort values
-      gts.v = gts.v.sort(function(a, b) { return a[0] - b[0];});
-
-      for (var i = 0; i < gts.v.length; i++) {
-        var metric = gts.v[i];
-
-        if (metric.length == 2) {
-            // timestamp, value
-        }
-        if (metric.length == 3) {
-            // timestamp, elevation, value
-        }
-        if (metric.length == 4) {
-            // timestamp, lat, lon, value
-            path.push({ ts: Math.floor(metric[0]/1000), lat: metric[1], lon: metric[2], val: metric[3]});
-        }
-        if (metric.length == 5) {
-            // timestamp, lat, lon, elevation, value
-            path.push({ ts: Math.floor(metric[0]/1000), lat: metric[1], lon: metric[2], elev: metric[3], val: metric[4]});
-        }
-      }
-      return path;
-    };
 
     /***********************************************************************************
     * Constants
@@ -253,7 +267,7 @@
 
       var bounds = {}
 
-      if (!quantumvizGts.isArray(ndv3SeriesList)) {
+      if (!gtsTools.isArray(ndv3SeriesList)) {
         console.error("[quantumvizGts.getTimeBounds] ndv3SeriesList isn't array",ndv3SeriesList);
         return bounds;
       }
@@ -311,71 +325,13 @@
       return ndv3Series;
     };
 
-    /***********************************************************************************
-    * Returns true if @value is an Array
-    ***********************************************************************************/
-    quantumvizGts.isArray = function(value) {
-      return value && typeof value === 'object' && value instanceof Array && typeof value.length === 'number'
-        && typeof value.splice === 'function' && !(value.propertyIsEnumerable('length'));
-    };
-
-    /***********************************************************************************
-    * Returns true if @gts is a valid quantumviz gts
-    ***********************************************************************************/
-    quantumvizGts.isGts = function(gts) {
-      if ((gts.c == null) || (gts.l == null) || (gts.a == null)
-          || (gts.v == null) || !quantumvizGts.isArray(gts.v) ) {
-        return false;
-      }
-      return true;
-    }
-
-    /***********************************************************************************
-    * Returns true if @gts is a valid quantumviz gts to plot
-    ***********************************************************************************/
-    quantumvizGts.isGtsToPlot = function(gts) {
-      if ( !quantumvizGts.isGts(gts) ) {
-        return false;
-      }
-      // We look at the first value, if it's a String or Boolean it's an annotation GTS,
-      // if it's a number it's a GTS to plot
-      if  (typeof(gts.v[0][gts.v[0].length-1]) === 'number' )  {
-        return true;
-      }
-      return false;
-    }
-
-    /***********************************************************************************
-    * Returns true if @gts is a valid quantumviz gts to annotate
-    ***********************************************************************************/
-    quantumvizGts.isGtsToAnnotate = function(gts) {
-      if ( !quantumvizGts.isGts(gts) ) {
-        return false;
-      }
-      // We look at the first value, if it's a String or Boolean it's an annotation GTS,
-      // if it's a number it's a GTS to plot
-      if  (typeof(gts.v[0][gts.v[0].length-1]) === 'number' )  {
-        return false;
-      }
-      return true;
-    }
 
     /***********************************************************************************
     * Returns true if @data is a valid quantumviz response object
     ***********************************************************************************/
-    quantumvizGts.isValidResponse = function(data) {
+    quantumvizGts.isValidResponse = function(response) {
 
-      var response;
-
-      try {
-        response = JSON.parse(data);
-        //console.debug(response)
-      } catch(e){
-        console.error("Response non JSON compliant",data);
-        return false;
-      }
-
-      if (!quantumvizGts.isArray(response) || (response.length != 1)) {
+      if (!gtsTools.isArray(response) || (response.length != 1)) {
         console.error("Response isn't an Array or it has more than 1 element: ",response);
         return false;
       }
@@ -386,7 +342,7 @@
         return false;
       }
 
-      if (!quantumvizGts.isArray(response.gts) || !quantumvizGts.isArray(response.params)) {
+      if (!gtsTools.isArray(response.gts) || !gtsTools.isArray(response.params)) {
         console.error("Response's gts and/or params components aren't arrays",response);
         return false;
       }
@@ -396,11 +352,11 @@
         return false;
       }
 
-      if ((response.annotations !== undefined) && !quantumvizGts.isArray(response.annotations)) {
+      if ((response.annotations !== undefined) && !gtsTools.isArray(response.annotations)) {
         console.error("Response's annotations component isn't an array");
         return false;
       }
-      if ((response.annotationsParams !== undefined) && !quantumvizGts.isArray(response.annotationsParams)) {
+      if ((response.annotationsParams !== undefined) && !gtsTools.isArray(response.annotationsParams)) {
         console.error("Response's annotationsParams component isn't an array");
         return false;
       }
