@@ -6,18 +6,18 @@
     :host {
       display: block;
     }
-    #annotation {
-      padding-left: 110px;
-      padding-right: 20px;
+    .annotation {
+      position: relative;
     }
 
     svg {
       border: solid 1px black;
       height: 20px;
       position: relative;
+      left: 110px;
 
     }
-    #tooltip {
+    .tooltip {
       position: absolute;
       min-width: 200px;
       height: auto;
@@ -29,11 +29,11 @@
       z-index: 1000;
     }
 
-    #tooltip.hidden {
+    .tooltip.hidden {
         display: none;
     }
 
-    #tooltip p {
+    .tooltip p {
         margin: 0;
         font-family: sans-serif;
         font-size: 10pt;
@@ -57,12 +57,12 @@
     }
   </style>
   <template>
-    <div id="annotation">
+    <div class="annotation">
       <svg></svg>
-    </div>
-    <div id="tooltip" class="hidden">
-      <p><strong id="timestamp"></strong></p>
-      <p><span id="name"></span> - <span id="value"></span></p>
+      <div class="tooltip hidden">
+        <p><strong class="timestamp"></strong></p>
+        <p><span class="name"></span> - <span class="value"></span></p>
+      </div>
     </div>
   </template>
 </dom-module>
@@ -92,17 +92,20 @@
     setDimensions: function() {
       // Dimensions
       if (this.width <0) {
-        this.$.annotation.style.width = "100%";
+        this.$$('.annotation').style.width = "100%";
         this.$$('svg').style.width = "100%";
       } else {
-        this.$.annotation.style.width = (parseInt(this.width)+50)+"px";
-        this.$$('svg').style.width = (parseInt(this.width)-80)+"px";
+        this.$$('.annotation').style.width = (parseInt(this.width)+50)+"px";
+        this.$$('svg').style.width = (parseInt(this.width)-130)+"px";
       }
     },
     attached: function() {
       this.attached = true;
     },
     contentChanged: function() {
+
+      var context = this;
+
       this.MAX_MARKER_WIDTH = 10;
       if (!this.attached) {
         return
@@ -112,7 +115,9 @@
 
       this.setDimensions();
 
-      var svg = d3.select(this.$.annotation).select("svg");
+      var annotationD3 = d3.select(context.$$('.annotation'))
+
+      var svg = annotationD3.select("svg");
 
       var width = this.$$('svg').offsetWidth;
       if (width == 0) {
@@ -124,7 +129,6 @@
         .range([0, width])
 
       var annotation = this.annotation;
-      var context = this;
 
       var markerWidth = width / annotation.values.length - 2
       console.log ("markerWidth", markerWidth)
@@ -176,37 +180,40 @@
           d3.select(this)
             .attr("fill", "orange");
 
-          d3.select("#tooltip")
-            .select("#timestamp")
+          annotationD3.select(".tooltip")
+            .select(".timestamp")
             .text(d3.time.format.utc('%Y-%m-%dT%H:%M:%SZ')(new Date(d.x)));
 
-          d3.select("#tooltip")
-            .select("#name")
+          annotationD3.select(".tooltip")
+            .select(".name")
             .html(keyFormatter(annotation.key));
 
-          d3.select("#tooltip")
-            .select("#value")
+          annotationD3.select(".tooltip")
+            .select(".value")
             .text(d.y);
 
           //Show the tooltip
-          d3.select("#tooltip").classed("hidden", false);
+          annotationD3.select(".tooltip").classed("hidden", false);
 
-          var tooltipWidth = d3.select("#tooltip").node().getBoundingClientRect().width;
+          var tooltipWidth = annotationD3.select(".tooltip").node().getBoundingClientRect().width;
           var xPosition = d3.select(this).node().getBoundingClientRect().left + markerWidth/2 - tooltipWidth/2;
           if (xPosition < 0) { xPosition = 0; }
-          var yPosition = d3.select(this).node().getBoundingClientRect().top - 60 + window.scrollY;
+          //var yPosition = d3.select(this).node().getBoundingClientRect().top - 0;
+          var yPosition = 30;
 
-          /*
-          console.log("yPosition", d3.select(this).node().getBoundingClientRect().top);
-          console.log("scrollY", window.scrollY);
-          */
+
+          //console.log("[quantumviz-annotation] on mouseover - yPosition", d3.select(this).node().getBoundingClientRect().top);
+          //console.log("[quantumviz-annotation] on mouseover - scrollY", window.scrollY);
+
 
           //Update the tooltip position and value
-          d3.select("#tooltip")
+          annotationD3.select(".tooltip")
             .style("left", xPosition + "px")
             .style("top", yPosition + "px")
 
-          context.vertGuide = d3.select(this).node().getBoundingClientRect().left + markerWidth/2;
+          context.vertGuide = d3.select(this).node().getBoundingClientRect().left - markerWidth/2 ;
+
+          console.debug("[quantumviz-annotation] on mouseover - vertGuide" , context.vertGuide);
 
         })
         .on("mouseout", function(d) {
@@ -216,7 +223,7 @@
             .attr("fill", annotation.color);
 
           //Hide the tooltip
-          d3.select("#tooltip").classed("hidden", true);
+          annotationD3.select(".tooltip").classed("hidden", true);
           context.vertGuide = -1;
         });
     }
