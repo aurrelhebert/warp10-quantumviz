@@ -148,8 +148,20 @@
 
           if (response.params[i].key !== undefined) {
             posArray.key = response.params[i].key;
-          } else if(posArray.key === undefined ){
+          } else if (posArray.key === undefined ){
             posArray.key = "circle";
+          }
+
+          if (response.params[i].path !== undefined) {
+            posArray.path = response.params[i].path;
+          } else if (posArray.path === undefined ){
+            posArray.path = true;
+          }
+
+          if (response.params[i].marker !== undefined) {
+            posArray.marker = response.params[i].marker;
+          } else if (posArray.marker === undefined ){
+            posArray.marker = true;
           }
 
           if (response.params[i].color !== undefined) {
@@ -223,11 +235,16 @@
     /***********************************************************************************
     * Gets the points array for the map bounds
     ***********************************************************************************/
-    quantumvizGts.getBoundsArray = function(paths) {
+    quantumvizGts.getBoundsArray = function(paths, positionsData) {
       var boundsArray = [];
       for (var i=0; i< paths.length; i++) {
         for (var j=0; j<paths[i].path.length; j++) {
           boundsArray.push([paths[i].path[j].lat,paths[i].path[j].lon])
+        }
+      }
+      for (var i=0; i< positionsData.length; i++) {
+        for (var j=0; j<positionsData[i].positions.length; j++) {
+          boundsArray.push(positionsData[i].positions[j])
         }
       }
       return boundsArray;

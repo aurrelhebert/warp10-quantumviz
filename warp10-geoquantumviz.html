@@ -104,7 +104,7 @@
           this.polylinesBeforeCurrentValue.push(L.polyline(quantumvizGts.pathDataToLeaflet(this.pathData[i].path, {to:0}), {color: this.pathData[i].color, opacity: 1} ).addTo(map));
           this.polylinesAfterCurrentValue.push(L.polyline(quantumvizGts.pathDataToLeaflet(this.pathData[i].path, {from:0}), {color: this.pathData[i].color, opacity: 0.5} ).addTo(map));
 
-          //Let's verify we have a path... No poth, no marker
+          //Let's verify we have a path... No path, no marker
           if (this.pathData[i].path[0] !== undefined ) {
             var circle = L.circleMarker([this.pathData[i].path[0].lat, this.pathData[i].path[0].lon],
               {radius: 5, color:  "#fff", fillColor:  this.pathData[i].color, fillOpacity: 1}).addTo(map);
@@ -119,16 +119,25 @@
           if (this.positionsData[i].path) {
             L.polyline(this.positionsData[i].positions, {color: this.positionsData[i].color, opacity: 1} ).addTo(map);
           } else {
-            var icon = L.MakiMarkers.icon({icon: this.positionsData[i].key, color: this.positionsData[i].color, size: "m"});
-            for (var j=0; j<this.positionsData[i].positions.length; j++ ) {
-              L.marker(this.positionsData[i].positions[j], {icon: icon, opacity: 1} ).addTo(map);
+            if (this.positionsData[i].marker) {
+              var icon = L.MakiMarkers.icon({icon: this.positionsData[i].key, color: this.positionsData[i].color, size: "m"});
+              for (var j=0; j<this.positionsData[i].positions.length; j++ ) {
+                L.marker(this.positionsData[i].positions[j], {icon: icon, opacity: 1} ).addTo(map);
+              }
+            }
+            else {
+              for (var j=0; j<this.positionsData[i].positions.length; j++ ) {
+                L.circleMarker(
+                  this.positionsData[i].positions[j],
+                  { radius: 10, color:  "#fff", fillColor:  this.positionsData[i].color, fillOpacity: 1 }
+                ).addTo(map);
+              }
             }
           }
         }
 
-
         // Fit map to curves
-        map.fitBounds(quantumvizGts.getBoundsArray(this.pathData));
+        map.fitBounds(quantumvizGts.getBoundsArray(this.pathData,this.positionsData));
 
       },
       currentValuesChanged: function() {

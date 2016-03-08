@@ -88,14 +88,22 @@ This code may only be used under the BSD style license found at http://polymer.g
     'positions' [ [ 51.50 -0.12 ] [ 51.46 -0.00 ] [ 51.42 -0.20 ] ]
     'path' false
   }
-  4 ->LIST
+
+  {
+    'positions' [ [ 51.00 -0.12 ] [ 51.36 -0.00 ] [ 51.32 -0.20 ] ]
+    'path' false
+    'marker' false
+  }
+
+  5 ->LIST
   'gts' STORE
 
   [
     { 'color' '#ff1010' 'key' 'Path A' }
     { 'color' '#1010ff' 'key' 'Path B' }
     { 'key' 'Annotation' }
-    { 'key' 'fuel' }
+    { 'key' 'fuel'   'path' false   'marker' true   }
+    { 'key' 'points' 'path' false   'marker' false  }
   ]
   'params' STORE
 
