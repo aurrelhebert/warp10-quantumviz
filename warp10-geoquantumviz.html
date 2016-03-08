@@ -38,11 +38,11 @@
     Polymer({
       is: "warp10-geoquantumviz",
       properties: {
-          width: {
+          mapWidth: {
             type: Number,
             value: -1
           },
-          height: {
+          mapHeight: {
             type: Number,
             value: -1
           },
@@ -86,6 +86,16 @@
         this.polylinesBeforeCurrentValue = [];
         this.polylinesAfterCurrentValue = [];
         this.currentValuesMarkers = [];
+
+        // Dimensions
+        if (this.mapWidth > 0) {
+          this.$.map.style.width = this.mapWidth+"px";
+          this.$.map.style.maxWidth = this.mapWidth+"px";
+        }
+        if (this.mapHeight > 0) {
+          this.$.map.style.height = this.mapHeight+"px";
+        }
+        console.debug("[warp10-geoquantumviz] Dimensions", this.$.map.style);
       },
       dataChanged: function() {
 

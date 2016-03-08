@@ -22,7 +22,7 @@ This code may only be used under the BSD style license found at http://polymer.g
     padding:10px;
     border-radius: 10px;
     margin: 20px;
-    width: 750px;
+    min-width: 750px;
   }
 </style>
 <script src=" ../webcomponentsjs/webcomponents.js"></script>
@@ -40,7 +40,7 @@ This code may only be used under the BSD style license found at http://polymer.g
   <div class="container">
 
     <warp10-geoquantumviz
-      width="500" height="300"
+      width="500" height="300" map-width="1200" map-height="900"
       show-axis="true"  tooltip="true" line-width="2" reload="0"
       current-values={{current}}
       host="https://warp.cityzendata.net/dist/api/v0" old-path="" >
@@ -90,7 +90,7 @@ This code may only be used under the BSD style license found at http://polymer.g
   }
 
   {
-    'positions' [ [ 51.00 -0.12 ] [ 51.36 -0.00 ] [ 51.32 -0.20 ] ]
+    'positions' [ [ 51.20 -0.12 ] [ 51.36 -0.00 ] [ 51.32 -0.20 ] ]
     'path' false
     'marker' false
   }
