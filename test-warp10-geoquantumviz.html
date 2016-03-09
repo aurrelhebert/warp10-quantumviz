@@ -86,24 +86,32 @@ This code may only be used under the BSD style license found at http://polymer.g
 
   {
     'positions' [ [ 51.50 -0.12 ] [ 51.46 -0.00 ] [ 51.42 -0.20 ] ]
-    'path' false
+  }
+
+
+  {
+    'positions' [ [ 51.20 -0.12 42 ] [ 51.36 -0.00 21 ] [ 51.32 -0.20 84 ] ]
   }
 
   {
-    'positions' [ [ 51.20 -0.12 ] [ 51.36 -0.00 ] [ 51.32 -0.20 ] ]
-    'path' false
-    'marker' false
+    'positions' [ [ 51.20 -0.52 42 ] [ 51.36 -0.40 21 ] [ 51.32 -0.60 84 ] ]
   }
 
-  5 ->LIST
+  {
+    'positions' [ [ 51.40 -0.52 42 ] [ 51.56 -0.40 21 ] [ 51.42 -0.60 84 ] ]
+  }
+
+  7 ->LIST
   'gts' STORE
 
   [
     { 'color' '#ff1010' 'key' 'Path A' }
     { 'color' '#1010ff' 'key' 'Path B' }
     { 'key' 'Annotation' }
-    { 'key' 'fuel'   'path' false   'marker' true   }
-    { 'key' 'points' 'path' false   'marker' false  }
+    { 'key' 'fuel'   'render' 'marker'   }
+    { 'key' 'points' 'render' 'dots' 'color' '#aaf' 'borderColor' '#f00' }
+    { 'key' 'points' 'render' 'weightedDots' 'color' '#aaf' 'borderColor' '#f00' 'maxValue' 100 'minValue' 0 'baseRadius' 15 'numSteps' 10 }
+    { 'key' 'points' 'render' 'weightedDots'  'maxValue' 100 'minValue' 0 }
   ]
   'params' STORE
 

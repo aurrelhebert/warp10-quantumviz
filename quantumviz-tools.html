@@ -152,16 +152,12 @@
             posArray.key = "circle";
           }
 
-          if (response.params[i].path !== undefined) {
-            posArray.path = response.params[i].path;
-          } else if (posArray.path === undefined ){
-            posArray.path = true;
+          if (response.params[i].render !== undefined) {
+            posArray.render = response.params[i].render;
           }
 
-          if (response.params[i].marker !== undefined) {
-            posArray.marker = response.params[i].marker;
-          } else if (posArray.marker === undefined ){
-            posArray.marker = true;
+          if (posArray.render == 'weightedDots') {
+            quantumvizGts.validateWeightedDotsPositionArray(posArray, response.params[i]);
           }
 
           if (response.params[i].color !== undefined) {
@@ -169,11 +165,71 @@
           } else {
             posArray.color = quantumvizGts.palette[i];
           }
+
+          if (response.params[i].borderColor !== undefined) {
+            posArray.borderColor = response.params[i].borderColor;
+          } else {
+            posArray.borderColor = "#000";
+          }
+
           positions.push(posArray);
         }
       }
 
       return positions;
+    }
+
+
+    quantumvizGts.validateWeightedDotsPositionArray = function (posArray, params) {
+      if (params.minValue === undefined || params.maxValue === undefined) {
+        console.error("[quantumviz-tools] validateWeightedDotsPositionArray() - When using 'weightedDots' rendering, 'maxValue' and 'minValue' parameters are compulsory");
+        posArray.render = undefined;
+        return;
+      }
+
+      posArray.maxValue = params.maxValue;
+      posArray.minValue = params.minValue;
+
+
+      if (typeof posArray.minValue != "number" || typeof posArray.maxValue != "number" || posArray.minValue >= posArray.maxValue  ) {
+        console.error("[quantumviz-tools] validateWeightedDotsPositionArray() - When using 'weightedDots' rendering, 'maxValue' and 'minValue' must be numbers and 'maxValue' must be greater than 'minValue'");
+        posArray.render = undefined;
+        return;
+      }
+      if (!gtsTools.isPositionsArrayWithValues(posArray)) {
+        console.error("[quantumviz-tools] validateWeightedDotsPositionArray() - When using 'weightedDots' rendering, positions must have an associated value");
+        posArray.render = undefined;
+        return;
+      }
+
+      if (params.baseRadius === undefined || isNaN(parseInt(params.baseRadius)) || parseInt(params.baseRadius) < 0 ) {
+        posArray.baseRadius = 10;
+      } else {
+        posArray.baseRadius = params.baseRadius;
+      }
+      if (params.numSteps === undefined || isNaN(parseInt(params.numSteps)) || parseInt(params.numSteps) < 0 ) {
+        posArray.numSteps = 5;
+      } else {
+        posArray.numSteps = params.numSteps;
+      }
+      var step = (posArray.maxValue - posArray.minValue) / posArray.numSteps;
+      var steps = []
+      for (var j = 0; j < posArray.numSteps-1; j++) {
+        steps[j] = posArray.minValue+ (j+1)*step;
+      }
+      steps[posArray.numSteps-1] = posArray.maxValue;
+
+      console.debug("[quantumviz-tools] validateWeightedDotsPositionArray() - steps", steps)
+      for (var j in posArray.positions) {
+        var value = posArray.positions[j][2];
+        for (var k in steps) {
+          if (value < steps[k]) {
+            var stepAssociatedToValue = k;
+            posArray.positions[j][3] = stepAssociatedToValue;
+            break;
+          }
+        }
+      }
     }
 
     /***********************************************************************************

@@ -126,23 +126,35 @@
 
         // Create the positions arrays
         for (var i=0; i< this.positionsData.length; i++) {
-          if (this.positionsData[i].path) {
-            L.polyline(this.positionsData[i].positions, {color: this.positionsData[i].color, opacity: 1} ).addTo(map);
-          } else {
-            if (this.positionsData[i].marker) {
+          console.debug('[warp10-geoquantumviz] positionsData item', this.positionsData[i]);
+          switch (this.positionsData[i].render) {
+            case 'path':
+              L.polyline(this.positionsData[i].positions, {color: this.positionsData[i].color, opacity: 1} ).addTo(map);
+              break;
+            case 'marker':
               var icon = L.MakiMarkers.icon({icon: this.positionsData[i].key, color: this.positionsData[i].color, size: "m"});
               for (var j=0; j<this.positionsData[i].positions.length; j++ ) {
                 L.marker(this.positionsData[i].positions[j], {icon: icon, opacity: 1} ).addTo(map);
               }
-            }
-            else {
+              break;
+
+            case 'weightedDots':
               for (var j=0; j<this.positionsData[i].positions.length; j++ ) {
                 L.circleMarker(
                   this.positionsData[i].positions[j],
-                  { radius: 10, color:  "#fff", fillColor:  this.positionsData[i].color, fillOpacity: 1 }
+                  { radius: this.positionsData[i].baseRadius*this.positionsData[i].positions[j][3], color:  this.positionsData[i].borderColor, fillColor:  this.positionsData[i].color, fillOpacity: 1 }
                 ).addTo(map);
               }
-            }
+              break;
+            case 'dots':
+            default:
+              for (var j=0; j<this.positionsData[i].positions.length; j++ ) {
+                L.circleMarker(
+                  this.positionsData[i].positions[j],
+                  { radius: 10, color:  this.positionsData[i].borderColor, fillColor:  this.positionsData[i].color, fillOpacity: 1 }
+                ).addTo(map);
+              }
+              break;
           }
         }
 
