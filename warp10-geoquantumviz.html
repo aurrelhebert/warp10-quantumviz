@@ -22,7 +22,7 @@
   <template>
 
     <spinner-widget id="map-spinner" active="{{loading}}" hover container-height="{{mapHeight}}" size="{{_mapSpinnerSize}}" ></spinner-widget>
-    <leaflet-map id="map" latitude="0" longitude="0" zoom="13">
+    <leaflet-map id="map" latitude="{{mapLat}}" longitude="{{mapLon}}" zoom="{{mapZoom}}">
     </leaflet-map>
 
     <warp10-quantumviz
@@ -30,7 +30,7 @@
       show-axis="{{showAxis}}"  tooltip="{{tooltip}}"
       line-width="{{lineWidth}}" reload="{{reload}}"
       current-values="{{currentValues}}" host="{{host}}"
-      content="{{content}}" data="{{data}}" old-path="{{oldPath}}"
+      content="{{_warpScript}}" data="{{data}}" old-path="{{oldPath}}"
       loading="{{loading}}"
       >
     </warp10-quantumviz>
@@ -50,6 +50,18 @@
           mapHeight: {
             type: Number,
             value: -1
+          },
+          mapZoom: {
+            type: Number,
+            value: 0
+          },
+          mapLon: {
+            type: Number,
+            value: 0
+          },
+          mapLat: {
+            type: Number,
+            value: 0
           },
           host: {
             type: String,
@@ -88,6 +100,10 @@
           _mapSpinnerSize: {
             type: Number,
             computed: "_getMapSpinnerSize(mapHeight)"
+          },
+          _warpScript: {
+            type: String,
+            computed: "_getWarpScript(content)"
           }
       },
       ready: function() {
@@ -109,6 +125,14 @@
       _getMapSpinnerSize: function() {
         console.debug("[warp10-geoquantumviz] _getMapSpinnerSize called", Math.floor(this.mapHeight * 0.75))
         return Math.floor(this.mapHeight * 0.75);
+      },
+      _getWarpScript: function() {
+        // Setting lat, lon and zoom as script variables
+        var warpscript = "";
+        warpscript += this.mapLat +" 'lat' STORE ";
+        warpscript += this.mapLon +" 'lon' STORE ";
+        warpscript += this.mapZoom +" 'zoom' STORE ";
+        return warpscript += this.content;
       },
       dataChanged: function() {
 
