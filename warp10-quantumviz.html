@@ -87,11 +87,11 @@ Viz-only version of Quantum widget
     </style>
     <div class="widget">
 
-      <spinner-widget shown={{loading}} spinner-width="{{width}}px" spinner-height="{{height}}px"></spinner-widget>
+      <spinner-widget active={{loading}} hover size="200" ></spinner-widget>
 
       <div id="vertGuide"></div>
 
-      <quantumviz-annotations time-bounds={{timeBounds}} data={{data}} vert-guide={{vertGuide}} >
+      <quantumviz-annotations time-bounds={{timeBounds}} data={{data}} vert-guide={{vertGuide}} width="{{width}}" >
       </quantumviz-annotations>
 
       <div id="chart">
@@ -186,6 +186,11 @@ Viz-only version of Quantum widget
       oldPath: {
         type: String,
         value: ""
+      },
+      loading: {
+        type: Boolean,
+        value: false,
+        notify: true
       }
     },
     ready: function() {

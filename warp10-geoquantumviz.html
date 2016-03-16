@@ -15,10 +15,14 @@
     /deep/ .leaflet-control-attribution {
       display: none;
     }
+    #map-spinner {
+      z-index: 1000;
+    }
   </style>
   <template>
 
-    <leaflet-map id="map" latitude="51.505" longitude="-0.09" zoom="13">
+    <spinner-widget id="map-spinner" active="{{loading}}" hover container-height="{{mapHeight}}" size="{{_mapSpinnerSize}}" ></spinner-widget>
+    <leaflet-map id="map" latitude="0" longitude="0" zoom="13">
     </leaflet-map>
 
     <warp10-quantumviz
@@ -27,6 +31,7 @@
       line-width="{{lineWidth}}" reload="{{reload}}"
       current-values="{{currentValues}}" host="{{host}}"
       content="{{content}}" data="{{data}}" old-path="{{oldPath}}"
+      loading="{{loading}}"
       >
     </warp10-quantumviz>
 
@@ -79,6 +84,10 @@
           oldPath: {
             type: String,
             value: ""
+          },
+          _mapSpinnerSize: {
+            type: Number,
+            computed: "_getMapSpinnerSize(mapHeight)"
           }
       },
       ready: function() {
@@ -96,6 +105,10 @@
           this.$.map.style.height = this.mapHeight+"px";
         }
         console.debug("[warp10-geoquantumviz] Dimensions", this.$.map.style);
+      },
+      _getMapSpinnerSize: function() {
+        console.debug("[warp10-geoquantumviz] _getMapSpinnerSize called", Math.floor(this.mapHeight * 0.75))
+        return Math.floor(this.mapHeight * 0.75);
       },
       dataChanged: function() {
 

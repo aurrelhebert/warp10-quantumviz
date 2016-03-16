@@ -22,12 +22,15 @@
     "/.*"
   ],
   "dependencies": {
-    "polymer": "~1.2.0",
-    "warp10-iron": "cityzendata/warp10-iron#1.0.1.2",
+    "polymer": "~1.3.1",
+    "warp10-iron": "cityzendata/warp10-iron#1.0.2",
     "iron-ajax": "PolymerElements/iron-ajax#^1.1.0",
     "nvd3": "~1.8.1",
     "leaflet-map": "git@github.com:LostInBrittany/leaflet-map.git#1.0.2",
     "Leaflet.MakiMarkers": "~1.0.1",
-    "spinner-widget": "LostInBrittany/spinner-widget#~0.0.4"
+    "spinner-widget": "LostInBrittany/spinner-widget#~1.0.3"
+  },
+  "resolutions": {
+    "polymer": "~1.3.1"
   }
 }

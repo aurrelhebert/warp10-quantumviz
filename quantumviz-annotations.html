@@ -18,7 +18,7 @@
   <template>
     <div id="annotations">
       <template is="dom-repeat" items="{{annotations}}" as="annotation">
-        <quantumviz-annotation width="500" time-bounds="{{timeBounds}}"
+        <quantumviz-annotation width="{{width}}" time-bounds="{{timeBounds}}"
           annotation="{{annotation}}" vert-guide="{{vertGuide}}">
         </quantumviz-annotation>
       </template>
@@ -49,6 +49,7 @@
     },
     attached: function() {
       this.attached = true;
+      console.debug("[quantumviz-annotations] width", this.width);
     },
     contentChanged: function() {
       if (!this.attached) {
