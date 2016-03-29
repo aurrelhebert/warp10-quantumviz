@@ -10,3 +10,4 @@ vulcanized-priv
 artifacts
 tools
 _old_elements
+tmp-*
