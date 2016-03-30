@@ -91,7 +91,13 @@ Viz-only version of Quantum widget
 
       <div id="vertGuide"></div>
 
-      <quantumviz-annotations time-bounds={{timeBounds}} data={{data}} vert-guide={{vertGuide}} width="{{width}}" >
+      <quantumviz-annotations
+        time-bounds={{timeBounds}}
+        data={{data}}
+        vert-guide={{vertGuide}}
+        width="{{width}}"
+        selected-timestamp="{{annotationsSelectedTimestamp}}"
+        >
       </quantumviz-annotations>
 
       <div id="chart">
@@ -191,6 +197,12 @@ Viz-only version of Quantum widget
         type: Boolean,
         value: false,
         notify: true
+      },
+      annotationsSelectedTimestamp: {
+        type: Number,
+        notify: true,
+        observer: "_annotationsSelectedTimestampChanged",
+        value: -1
       }
     },
     ready: function() {
@@ -200,6 +212,9 @@ Viz-only version of Quantum widget
       this.configure();
       this.call = 1;
       //
+    },
+    _annotationsSelectedTimestampChanged: function() {
+      console.debug("[warp10-quantumviz] _annotationsSelectedTimestampChanged", this.annotationsSelectedTimestamp);
     },
     configure: function() {
       // console.debug("[test-quantumviz] configure - begin");

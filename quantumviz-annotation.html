@@ -85,6 +85,12 @@
       vertGuide: {
         type: Number,
         notify: true
+      },
+      selectedTimestamp: {
+        type: Number,
+        notify: true,
+        observer: "_selectedTimestampChanged",
+        value: -1
       }
     },
     created: function() {
@@ -107,6 +113,9 @@
     },
     attached: function() {
       this.attached = true;
+    },
+    _selectedTimestampChanged: function() {
+      console.debug("[quantumviz-annotation] _selectedTimestampChanged", this.selectedTimestamp);
     },
     contentChanged: function() {
 
@@ -172,6 +181,8 @@
         return html;
       };
 
+
+
       svg.selectAll("rect")
         .data(annotation.values)
         .enter()
@@ -186,8 +197,12 @@
         .attr("stroke", "white")
         .attr("stroke-width", svgStrokeWidth)
         .on("mouseover", function(d) {
+
+          context.selectedTimestamp = d.x;
+
           d3.select(this)
             .attr("fill", "orange");
+
 
           annotationD3.select(".tooltip")
             .select(".timestamp")
@@ -228,6 +243,9 @@
 
         })
         .on("mouseout", function(d) {
+
+          context.selectedTimestamp = -1;
+
           d3.select(this)
             // .transition()
             // .duration(125)
