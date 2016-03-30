@@ -134,6 +134,46 @@
         warpscript += this.mapZoom +" 'zoom' STORE ";
         return warpscript += this.content;
       },
+      _plotPositionArray: function(positionData, map) {
+        console.debug('[warp10-geoquantumviz] _plotPositionArray - item', positionData);
+        switch (positionData.render) {
+          case 'path':
+            L.polyline(positionData.positions, {color: positionData.color, opacity: 1} ).addTo(map);
+            break;
+          case 'marker':
+            var icon = L.MakiMarkers.icon({icon: positionData.key, color: positionData.color, size: "m"});
+            for (var j=0; j<positionData.positions.length; j++ ) {
+              L.marker(positionData.positions[j], {icon: icon, opacity: 1} ).addTo(map);
+            }
+            break;
+          case 'weightedDots':
+            for (var j=0; j<positionData.positions.length; j++ ) {
+              L.circleMarker(
+                positionData.positions[j],{
+                  radius: positionData.baseRadius*positionData.positions[j][3],
+                  color:  positionData.borderColor,
+                  fillColor:
+                  positionData.color, fillOpacity: 1
+                }).addTo(map);
+            }
+            break;
+          case 'dots':
+          default:
+            for (var j=0; j<positionData.positions.length; j++ ) {
+              L.circleMarker(
+                positionData.positions[j],{
+                  radius: 10,
+                  color: positionData.borderColor,
+                  fillColor: positionData.color,
+                  fillOpacity: 1
+                }
+              ).addTo(map);
+            }
+            break;
+        }
+
+
+      },
       dataChanged: function() {
 
 
@@ -144,8 +184,8 @@
 
         var map = this.$.map.map
 
-        var circleRadius = map.getBounds().getSouthWest().distanceTo(map.getBounds().getNorthEast())/30;
 
+        var circleRadius = map.getBounds().getSouthWest().distanceTo(map.getBounds().getNorthEast())/30;
         // Create the polylines and the circle marker
         for (var i=0; i< this.pathData.length; i++) {
           this.polylinesBeforeCurrentValue.push(L.polyline(quantumvizGts.pathDataToLeaflet(this.pathData[i].path, {to:0}), {color: this.pathData[i].color, opacity: 1} ).addTo(map));
@@ -163,36 +203,7 @@
 
         // Create the positions arrays
         for (var i=0; i< this.positionsData.length; i++) {
-          console.debug('[warp10-geoquantumviz] positionsData item', this.positionsData[i]);
-          switch (this.positionsData[i].render) {
-            case 'path':
-              L.polyline(this.positionsData[i].positions, {color: this.positionsData[i].color, opacity: 1} ).addTo(map);
-              break;
-            case 'marker':
-              var icon = L.MakiMarkers.icon({icon: this.positionsData[i].key, color: this.positionsData[i].color, size: "m"});
-              for (var j=0; j<this.positionsData[i].positions.length; j++ ) {
-                L.marker(this.positionsData[i].positions[j], {icon: icon, opacity: 1} ).addTo(map);
-              }
-              break;
-
-            case 'weightedDots':
-              for (var j=0; j<this.positionsData[i].positions.length; j++ ) {
-                L.circleMarker(
-                  this.positionsData[i].positions[j],
-                  { radius: this.positionsData[i].baseRadius*this.positionsData[i].positions[j][3], color:  this.positionsData[i].borderColor, fillColor:  this.positionsData[i].color, fillOpacity: 1 }
-                ).addTo(map);
-              }
-              break;
-            case 'dots':
-            default:
-              for (var j=0; j<this.positionsData[i].positions.length; j++ ) {
-                L.circleMarker(
-                  this.positionsData[i].positions[j],
-                  { radius: 10, color:  this.positionsData[i].borderColor, fillColor:  this.positionsData[i].color, fillOpacity: 1 }
-                ).addTo(map);
-              }
-              break;
-          }
+          this._plotPositionArray(this.positionsData[i], map);
         }
 
         // Fit map to curves
