@@ -115,7 +115,7 @@
       this.attached = true;
     },
     _selectedTimestampChanged: function() {
-      console.debug("[quantumviz-annotation] _selectedTimestampChanged", this.selectedTimestamp);
+      // console.debug("[quantumviz-annotation] _selectedTimestampChanged", this.selectedTimestamp);
     },
     contentChanged: function() {
 
@@ -125,7 +125,7 @@
         return
       }
 
-      console.debug("[quantumviz-annotation] Content changed");
+      // console.debug("[quantumviz-annotation] Content changed");
 
       this.setDimensions();
 
@@ -238,8 +238,8 @@
 
           context.vertGuide = parseInt(d3.select(this).attr("x")) +  markerWidth/2 +  svgStrokeWidth/2 + svgMarginLeft ;
 
-          console.log("[quantumviz-annotation] on mouseover - xPosition", parseInt(d3.select(this).attr("x"))+110)
-          console.debug("[quantumviz-annotation] on mouseover - vertGuide" , context.vertGuide);
+          // console.log("[quantumviz-annotation] on mouseover - xPosition", parseInt(d3.select(this).attr("x"))+110)
+          // console.debug("[quantumviz-annotation] on mouseover - vertGuide" , context.vertGuide);
 
         })
         .on("mouseout", function(d) {
