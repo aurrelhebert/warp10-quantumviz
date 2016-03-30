@@ -8,13 +8,13 @@
     }
     .annotation {
       position: relative;
+      display: block;
     }
 
     svg {
+      display: block;
       border: solid 1px black;
       height: 20px;
-      position: relative;
-      left: 110px;
 
     }
     .tooltip {
@@ -58,7 +58,7 @@
   </style>
   <template>
     <div class="annotation">
-      <svg></svg>
+      <svg id="svg"></svg>
       <div class="tooltip hidden">
         <p><strong class="timestamp"></strong></p>
         <p><span class="name"></span> - <span class="value"></span></p>
@@ -87,16 +87,22 @@
         notify: true
       }
     },
-    ready: function() {
+    created: function() {
+      this.SVG_MARGIN_LEFT = 110;
+      this.SVG_STROKE_WIDTH = 2;
+      this.NVD3_CHART_RIGHT_MARGIN = 20;
+      this.MAX_MARKER_WIDTH = 10;
     },
     setDimensions: function() {
+      this.$$('.annotation').style.paddingLeft = this.SVG_MARGIN_LEFT+"px"
       // Dimensions
       if (this.width <0) {
         this.$$('.annotation').style.width = "100%";
         this.$$('svg').style.width = "100%";
       } else {
-        this.$$('.annotation').style.width = (parseInt(this.width)+50)+"px";
-        this.$$('svg').style.width = (parseInt(this.width)-130)+"px";
+        //this.$$('.annotation').style.width = (parseInt(this.width)+50)+"px";
+        this.$$('svg').definedWidth = parseInt(this.width)-this.SVG_MARGIN_LEFT-this.NVD3_CHART_RIGHT_MARGIN;
+        this.$$('svg').style.width = this.$$('svg').definedWidth+"px";
       }
     },
     attached: function() {
@@ -106,7 +112,6 @@
 
       var context = this;
 
-      this.MAX_MARKER_WIDTH = 10;
       if (!this.attached) {
         return
       }
@@ -115,13 +120,20 @@
 
       this.setDimensions();
 
+      var svgMarginLeft = this.SVG_MARGIN_LEFT;
+      var svgStrokeWidth = this.SVG_STROKE_WIDTH;
+
       var annotationD3 = d3.select(context.$$('.annotation'))
 
       var svg = annotationD3.select("svg");
 
-      var width = this.$$('svg').offsetWidth;
-      if (width == 0) {
-        width = parseInt(this.width)-80;
+      var width;
+      if (this.$$('svg').definedWidth !== undefined) {
+        width = this.$$('svg').definedWidth;
+      } else if (this.$$('svg').getBoundingClientRect().width > 0) {
+        width = this.$$('svg').getBoundingClientRect().width;
+      } else {
+        width = this.$$('.annotation').getBoundingClientRect().width - this.SVG_MARGIN_LEFT-this.NVD3_CHART_RIGHT_MARGIN;
       }
 
       var scale = d3.scale.linear()
@@ -137,6 +149,7 @@
       }
       //console.log ("this.MAX_MARKER_WIDTH",this.MAX_MARKER_WIDTH)
       //console.log ("markerWidth", markerWidth)
+
 
       var keyFormatter = function(d, i) {
 
@@ -159,30 +172,26 @@
         return html;
       };
 
-
-
       svg.selectAll("rect")
         .data(annotation.values)
         .enter()
         .append("rect")
         .attr("x", function(d,i) {
-          //console.log("value",d.x)
-          //console.log("value scaled",scale(d.x))
-          return scale(d.x);
+          return scale(d.x) - markerWidth/2 - svgStrokeWidth/2;
         })
         .attr("y", 0)
         .attr("width", markerWidth)
         .attr("height", 20)
         .attr("fill", annotation.color)
         .attr("stroke", "white")
-        .attr("stroke-width", 2)
+        .attr("stroke-width", svgStrokeWidth)
         .on("mouseover", function(d) {
           d3.select(this)
             .attr("fill", "orange");
 
           annotationD3.select(".tooltip")
             .select(".timestamp")
-            .text(d3.time.format.utc('%Y-%m-%dT%H:%M:%SZ')(new Date(d.x)));
+            .text(d3.time.format.utc('%Y-%m-%dT%H:%M:%S.%LZ')(new Date(d.x)));
 
           annotationD3.select(".tooltip")
             .select(".name")
@@ -196,7 +205,8 @@
           annotationD3.select(".tooltip").classed("hidden", false);
 
           var tooltipWidth = annotationD3.select(".tooltip").node().getBoundingClientRect().width;
-          var xPosition = d3.select(this).node().getBoundingClientRect().left + markerWidth/2 - tooltipWidth/2;
+          var xPosition = parseInt(d3.select(this).attr("x")) +  markerWidth/2 + svgStrokeWidth/2 + svgMarginLeft - tooltipWidth/2;
+          // d3.select(this).attr("x")
           if (xPosition < 0) { xPosition = 0; }
           //var yPosition = d3.select(this).node().getBoundingClientRect().top - 0;
           var yPosition = 30;
@@ -211,8 +221,9 @@
             .style("left", xPosition + "px")
             .style("top", yPosition + "px")
 
-          context.vertGuide = d3.select(this).node().getBoundingClientRect().left - markerWidth/2 ;
+          context.vertGuide = parseInt(d3.select(this).attr("x")) +  markerWidth/2 +  svgStrokeWidth/2 + svgMarginLeft ;
 
+          console.log("[quantumviz-annotation] on mouseover - xPosition", parseInt(d3.select(this).attr("x"))+110)
           console.debug("[quantumviz-annotation] on mouseover - vertGuide" , context.vertGuide);
 
         })
