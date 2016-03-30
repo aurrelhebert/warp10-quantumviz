@@ -214,7 +214,7 @@ Viz-only version of Quantum widget
       //
     },
     _annotationsSelectedTimestampChanged: function() {
-      console.debug("[warp10-quantumviz] _annotationsSelectedTimestampChanged", this.annotationsSelectedTimestamp);
+      // console.debug("[warp10-quantumviz] _annotationsSelectedTimestampChanged", this.annotationsSelectedTimestamp);
     },
     configure: function() {
       // console.debug("[test-quantumviz] configure - begin");
@@ -337,9 +337,9 @@ Viz-only version of Quantum widget
       var yDomainMax = minMaxY[1];
       var yDomainRange =  yDomainMax - yDomainMin;
 
-      console.log("[warp10-quantumviz] addGraph - yDomainMin", yDomainMin)
-      console.log("[warp10-quantumviz] addGraph - yDomainMax", yDomainMax)
-      console.log("[warp10-quantumviz] addGraph - yDomainRange", yDomainRange)
+      // console.log("[warp10-quantumviz] addGraph - yDomainMin", yDomainMin)
+      // console.log("[warp10-quantumviz] addGraph - yDomainMax", yDomainMax)
+      // console.log("[warp10-quantumviz] addGraph - yDomainRange", yDomainRange)
 
       chart.yDomain([ yDomainMin  - 0.1 * yDomainRange, yDomainMax + 0.1 * yDomainRange ]);
 
