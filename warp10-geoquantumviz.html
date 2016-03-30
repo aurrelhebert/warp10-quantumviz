@@ -171,12 +171,40 @@
             }
             break;
         }
+      },
+      _plotGts(gts, map) {
+        var beforeCurrentValue =
+          L.polyline(
+            quantumvizGts.pathDataToLeaflet(gts.path, {to:0}), {
+              color: gts.color,
+              opacity: 1
+            }
+          ).addTo(map);
+        var afterCurrentValue = L.polyline(
+          quantumvizGts.pathDataToLeaflet(gts.path, {from:0}), {
+            color: gts.color,
+            opacity: 0.5
+          }
+        ).addTo(map);
+        // this.polylinesBeforeCurrentValue.push(beforeCurrentValue);
+        // this.polylinesAfterCurrentValue.push(afterCurrentValue);
 
-
+        var currentValue;
+        //Let's verify we have a path... No path, no marker
+        if (gts.path[0] !== undefined ) {
+          currentValue = L.circleMarker([gts.path[0].lat, gts.path[0].lon],
+            {radius: 5, color:  "#fff", fillColor:  gts.color, fillOpacity: 1}).addTo(map);
+        } else {
+          currentValue = L.circleMarker();
+        }
+        // this.currentValuesMarkers.push(currentValue);
+        return {
+          beforeCurrentValue: beforeCurrentValue,
+          afterCurrentValue: afterCurrentValue,
+          currentValue: currentValue
+        }
       },
       dataChanged: function() {
-
-
         this.pathData = quantumvizGts.toLeafletMapPaths(this.data);
         this.positionsData = quantumvizGts.toLeafletMapPositionArray(this.data);
         console.debug("[warp10-geoquantumviz] Data changed - path data", this.pathData);
@@ -188,17 +216,10 @@
         var circleRadius = map.getBounds().getSouthWest().distanceTo(map.getBounds().getNorthEast())/30;
         // Create the polylines and the circle marker
         for (var i=0; i< this.pathData.length; i++) {
-          this.polylinesBeforeCurrentValue.push(L.polyline(quantumvizGts.pathDataToLeaflet(this.pathData[i].path, {to:0}), {color: this.pathData[i].color, opacity: 1} ).addTo(map));
-          this.polylinesAfterCurrentValue.push(L.polyline(quantumvizGts.pathDataToLeaflet(this.pathData[i].path, {from:0}), {color: this.pathData[i].color, opacity: 0.5} ).addTo(map));
-
-          //Let's verify we have a path... No path, no marker
-          if (this.pathData[i].path[0] !== undefined ) {
-            var circle = L.circleMarker([this.pathData[i].path[0].lat, this.pathData[i].path[0].lon],
-              {radius: 5, color:  "#fff", fillColor:  this.pathData[i].color, fillOpacity: 1}).addTo(map);
-            this.currentValuesMarkers.push(circle);
-          } else {
-            this.currentValuesMarkers.push(L.circleMarker());
-          }
+          var plottedGts = this._plotGts(this.pathData[i], map);
+          this.polylinesBeforeCurrentValue.push(plottedGts.beforeCurrentValue);
+          this.polylinesAfterCurrentValue.push(plottedGts.afterCurrentValue);
+          this.currentValuesMarkers.push(plottedGts.currentValue);          
         }
 
         // Create the positions arrays
