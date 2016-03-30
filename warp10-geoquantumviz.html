@@ -204,8 +204,22 @@
           currentValue: currentValue
         }
       },
+      _plotAnnotation(gts, map) {
+        var positions = [];
+        for (var j=0; j<gts.path.length; j++ ) {
+          L.circleMarker(
+            gts.path[j],{
+              radius: 10,
+              color: gts.color,
+              fillColor: gts.color,
+              fillOpacity: 1
+            }
+          ).addTo(map);
+        }
+      },
       dataChanged: function() {
         this.pathData = quantumvizGts.toLeafletMapPaths(this.data);
+        this.annotationsData = quantumvizGts.annotationsToLeafletPositions(this.data);
         this.positionsData = quantumvizGts.toLeafletMapPositionArray(this.data);
         console.debug("[warp10-geoquantumviz] Data changed - path data", this.pathData);
         console.debug("[warp10-geoquantumviz] Data changed - position arrays", this.positionsData);
@@ -219,7 +233,11 @@
           var plottedGts = this._plotGts(this.pathData[i], map);
           this.polylinesBeforeCurrentValue.push(plottedGts.beforeCurrentValue);
           this.polylinesAfterCurrentValue.push(plottedGts.afterCurrentValue);
-          this.currentValuesMarkers.push(plottedGts.currentValue);          
+          this.currentValuesMarkers.push(plottedGts.currentValue);
+        }
+
+        for (var i=0; i< this.annotationsData.length; i++) {
+          this._plotAnnotation(this.annotationsData[i], map);
         }
 
         // Create the positions arrays

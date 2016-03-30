@@ -233,7 +233,44 @@
     }
 
     /***********************************************************************************
-    * Transforms quantumviz response object into leaflet-map paths
+    * Transforms annotations GTS from quantumviz response object into leaflet-map
+    * positions arrays
+    ***********************************************************************************/
+    quantumvizGts.annotationsToLeafletPositions = function(data) {
+      if (!quantumvizGts.isValidResponse(data)) {
+        return false;
+      }
+
+      var response = data[0];
+
+      var annotations = [];
+
+      for (var i=0; i< response.gts.length; i++) {
+        if (gtsTools.isGtsToAnnotate(response.gts[i])) {
+          var annotation = {};
+
+          annotation.path = gtsTools.gtsToPath(response.gts[i]);
+
+          if (response.params[i].key !== undefined) {
+            annotation.key = response.params[i].key;
+          }
+
+          if (response.params[i].color !== undefined) {
+            annotation.color = response.params[i].color;
+          } else {
+            annotation.color = quantumvizGts.palette[i];
+          }
+
+          annotations.push(annotation);
+        }
+      }
+
+      return annotations;
+
+    }
+
+    /***********************************************************************************
+    * Transforms GTS from quantumviz response object into leaflet-map paths
     ***********************************************************************************/
     quantumvizGts.toLeafletMapPaths = function(data) {
 
