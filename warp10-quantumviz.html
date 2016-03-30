@@ -250,7 +250,7 @@ Viz-only version of Quantum widget
         });
 
 
-      //console.log("Chart", Object.getOwnPropertyNames(this.chart));
+      // console.log("Chart", Object.getOwnPropertyNames(this.chart));
       //  Axis
       if (this.showAxis.toLowerCase()!="true") {
         this.chart.showXAxis(false);
@@ -266,6 +266,7 @@ Viz-only version of Quantum widget
           .axisLabel('')
           .tickFormat(d3.format(',.2f')).showMaxMin(false);;
       }
+
 
 
       // Tooltips
@@ -289,22 +290,60 @@ Viz-only version of Quantum widget
         this.chart.showLegend(true);
       }
 
+      // function to execute each time the graph is resized
+      nv.utils.windowResize(function(){ chart.update(); });
+
       // console.debug("[test-quantumviz] configureChart - end");
     },
+    _calculateMinMaxY: function(data) {
+      var y = [];
+      for (var i in data) {
+        for (var j in data[i].values) {
+          y.push(data[i].values[j].y);
+        }
+      }
+      return [ d3.min(y), d3.max(y) ]
+    },
     addGraph: function() {
+
       var chartData = quantumvizGts.toNvd3Graph(this.data);
+      var chart = this.chart;
 
       if (!chartData) {
         this.removeGraph();
         return false;
       }
 
-      this.chart.interpolate(chartData.globalParams.interpolate)
+      chart.interpolate(chartData.globalParams.interpolate)
+
+
+      var minMaxY = this._calculateMinMaxY(chartData.sparklines);
+      var yDomainMin = minMaxY[0];
+      var yDomainMax = minMaxY[1];
+      var yDomainRange =  yDomainMax - yDomainMin;
+
+      console.log("[warp10-quantumviz] addGraph - yDomainMin", yDomainMin)
+      console.log("[warp10-quantumviz] addGraph - yDomainMax", yDomainMax)
+      console.log("[warp10-quantumviz] addGraph - yDomainRange", yDomainRange)
+
+      chart.yDomain([ yDomainMin  - 0.1 * yDomainRange, yDomainMax + 0.1 * yDomainRange ]);
+
       d3.select(this.$.svg)
         .datum(chartData.sparklines)
-        .call(this.chart);
+        .call(chart);
 
-      nv.utils.windowResize(this.chart.update);
+
+      console.debug("[warp10-quantumviz] addGraph", chart.yAxis.scale());
+
+      // this.chart.forceY([-100,100]);
+      console.debug("[warp10-quantumviz] y domain before", chart.yAxis.scale().domain());
+
+      // chart.yAxis.scale().domain([-100,100])
+       var dataYDomain = chart.yAxis.scale().domain();
+       var dataYDomainRange = dataYDomain[1] - dataYDomain[0];
+      //chart.yDomain([ dataYDomain[0] - 0.1 * dataYDomainRange, dataYDomain[1] + 0.1 * dataYDomainRange ]);
+
+      console.debug("[warp10-quantumviz] y domain after", chart.yAxis.scale().domain());
 
       this.timeBounds = quantumvizGts.getTimeBounds(chartData.sparklines);
 
@@ -314,16 +353,16 @@ Viz-only version of Quantum widget
         d3.select(this).selectAll("g.nv-lineChart")
           .on("mousemove", this.getCurrentPoint.bind(this) );
       }
-      return this.chart;
+      return chart;
     },
     removeGraph: function() {
       d3.select(this.$.svg)
         .datum([])
         .call(this.chart);
-      nv.utils.windowResize(this.chart.update);
+      var chart = this.chart;
+      chart.update();
     },
     generateWarpScript: function() {
-
       console.debug("[warp10-quantumviz] generateWarpScript - begin");
       var warpscriptScript;
       if (this.warpscript !== undefined && this.warpscript.length > 0) {
@@ -361,6 +400,7 @@ Viz-only version of Quantum widget
       this.generateWarpScript();
     },
     dataChanged: function() {
+       console.debug("[warp10-quantumviz] dataChanged");
       if (this.data != null) {
         nv.addGraph(this.addGraph());
       } else {
