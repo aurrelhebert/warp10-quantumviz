@@ -255,10 +255,32 @@
             annotation.key = response.params[i].key;
           }
 
+          if (response.params[i].render !== undefined) {
+            annotation.render = response.params[i].render;
+          }
+
+          if (annotation.render == 'marker') {
+
+            if (response.params[i].marker) {
+              annotation.marker = response.params[i].marker ;
+            } else {
+              annotation.marker = "circle";
+            }            
+          }
+          if (annotation.render == 'weightedDots') {
+            quantumvizGts.validateWeightedDotsPositionArray(annotation, response.params[i]);
+          }
+
           if (response.params[i].color !== undefined) {
             annotation.color = response.params[i].color;
           } else {
             annotation.color = quantumvizGts.palette[i];
+          }
+
+          if (response.params[i].borderColor !== undefined) {
+            annotation.borderColor = response.params[i].borderColor;
+          } else {
+            annotation.borderColor = "#000";
           }
 
           annotations.push(annotation);

@@ -143,7 +143,9 @@
               this.annotationsMarkers[i][tick].setStyle({fillColor: 'orange'});
             } else {
               if (this.annotationsMarkers[i][tick].options.oldStyle) {
-                  this.annotationsMarkers[i][tick].setStyle({fillColor: this.annotationsMarkers[i][tick].options.oldStyle});
+                  this.annotationsMarkers[i][tick].setStyle({
+                    fillColor: this.annotationsMarkers[i][tick].options.oldStyle
+                  });
                   this.annotationsMarkers[i][tick].options.oldStyle = null;
               }
             }
@@ -234,20 +236,33 @@
       },
       _plotAnnotation(gts, map) {
         var positions = [];
-        for (var j=0; j<gts.path.length; j++ ) {
 
-          var marker = L.circleMarker(
-            gts.path[j],{
-              radius: 10,
-              color: gts.color,
-              fillColor: gts.color,
-              fillOpacity: 1,
-              timestamp: gts.path[j].ts
+        switch (gts.render) {
+          case 'marker':
+            var icon = L.MakiMarkers.icon({icon: gts.marker, color: gts.color, size: "m"});
+            for (var j=0; j<gts.path.length; j++ ) {
+              var marker = L.marker(gts.path[j], {icon: icon, opacity: 1} ).addTo(map);
+              marker.bindPopup(gts.path[j].val.toString());
+                positions.push(marker);
             }
-          ).addTo(map);
-          marker.bindPopup(gts.path[j].val.toString());
-          // console.debug("[warp10-geoquantumviz] _plotAnnotation - gts", gts);
-          positions.push(marker);
+            break;
+          case 'dots':
+          default:
+            for (var j=0; j<gts.path.length; j++ ) {
+              var marker = L.circleMarker(
+                gts.path[j],{
+                  radius: 10,
+                  color: gts.color,
+                  fillColor: gts.color,
+                  fillOpacity: 1,
+                  timestamp: gts.path[j].ts
+                }
+              ).addTo(map);
+              marker.bindPopup(gts.path[j].val.toString());
+              // console.debug("[warp10-geoquantumviz] _plotAnnotation - gts", gts);
+              positions.push(marker);
+            }
+            break;
         }
         return positions;
       },
