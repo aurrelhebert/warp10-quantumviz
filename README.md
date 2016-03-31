@@ -9,12 +9,11 @@ To use the widget in an HTML page you need:
 
 1. Import the `webcomponents.js` polyfill from the Polymer CDN:
 
-   `<script src="https://cdn.cityzendata.net/quantumviz/dependencies/webcomponentsjs/webcomponents.js"></script>`
-
+   `<script src="https://cdn.cityzendata.net/quantumviz/latest/webcomponentsjs/webcomponents-lite.js"></script>`
 
 1. Import the `warp10-quantumviz.html` widget from Cityzen Data website:
 
-   `<link rel="import" href="https://cdn.cityzendata.net/quantumviz/warp10-quantumviz.html">`
+   `<link rel="import" href="https://cdn.cityzendata.net/quantumviz/latest/warp10-quantumviz.html">`
 
 1. Use the `<warp10-quantumviz>` tag in your HTML
 
@@ -64,8 +63,8 @@ Available parameters are:
 
 ## Example of use ##
 
-   <script src="https://cdn.cityzendata.net/quantumviz/dependencies/webcomponentsjs/webcomponents.js"></script>
-   <link rel="import" href="https://cdn.cityzendata.net/quantumviz/warp10-quantumviz.html">
+    <script src="https://cdn.cityzendata.net/quantumviz/latest/webcomponentsjs/webcomponents-lite.js"></script>
+    <link rel="import" href="https://cdn.cityzendata.net/quantumviz/latest/warp10-quantumviz.html">
 
    <warp10-quantumviz width="500" height="400">
      'TOKEN'
@@ -107,6 +106,8 @@ Available parameters are:
 
 ## The example in action ##
 
+<script src="https://cdn.cityzendata.net/quantumviz/latest/webcomponentsjs/webcomponents-lite.js"></script>
+<link rel="import" href="https://cdn.cityzendata.net/quantumviz/latest/warp10-quantumviz.html">
 
 <div class="box">
 <warp10-quantumviz width="500" height="400" tooltip="false" host="https://warp1.cityzendata.net">
@@ -141,8 +142,8 @@ Available parameters are:
 ## Another example using the `host` parameter ##
 
 
-   <script src="https://cdn.cityzendata.net/quantumviz/dependencies/webcomponentsjs/webcomponents.js"></script>
-   <link rel="import" href="https://cdn.cityzendata.net/quantumviz/warp10-quantumviz.html">
+   <script src="https://cdn.cityzendata.net/quantumviz/latest/webcomponentsjs/webcomponents-lite.js"></script>
+   <link rel="import" href="https://cdn.cityzendata.net/quantumviz/latest/warp10-quantumviz.html">
 
    <warp10-quantumviz width="500" height="400" host="https://warp1.cityzendata.net">
      NEWGTS
