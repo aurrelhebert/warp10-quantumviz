@@ -1,0 +1,101 @@
+<!--
+@license
+Copyright (c) 2014 Horacio "LostInBrittany" Gonzalez
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+-->
+<!doctype html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+<title>warp10-geoquantumviz demo</title>
+
+<style>
+  body {
+    background-color: #eeeeee;
+  }
+  .current-value {
+    padding-left:100px;
+  }
+  .container {
+    display: inline-block;
+    border: 1px solid #444;
+    padding:10px;
+    border-radius: 10px;
+    margin: 20px;
+    min-width: 750px;
+  }
+</style>
+<script src=" ../webcomponentsjs/webcomponents.js"></script>
+<link   rel="import" href=" ../polymer/polymer.html">
+<link   rel="import" href=" ../warp10-quantumviz/warp10-geoquantumviz.html">
+<link   rel="import" href=" ../leaflet-map/leaflet-map.html">
+
+<body  unresolved>
+
+  <h1>GeoQuantumviz</h1>
+
+
+<template is="dom-bind">
+
+  <div class="container">
+
+    <warp10-geoquantumviz
+      width="800" height="350" map-width="800" map-height="450"
+      show-axis="true"  tooltip="true" line-width="2" reload="0"
+      current-values={{current}}
+      host="https://warp.cityzendata.net/dist/api/v0" old-path="" >
+  [
+    {
+      'positions' [
+        [ 51.10 0.52 42 10 ] [ 51.56 0.40 21  30 ] [ 51.42 0.60 84 40 ]
+        [ 51.30 -0.82 4 1 ] [ 51.76 -0.70 2  20 ] [ 51.62 -0.90 8 45 ]
+        [ 51.50 -1.52 42 25 ] [ 51.96 -1.70 61  35 ] [ 51.82 -1.90 74 15 ]
+      ]
+    }
+  ]
+
+  'gts' STORE
+
+  [
+    {
+      'key' 'points' 'render' 'coloredWeightedDots'  'maxValue' 100 'minValue' 0 'baseRadius' 5 'numSteps' 10
+      'maxColorValue' 50 'minColorValue' 0 'numColorSteps' 10 'startColor' '#ff0000' 'endColor' '#00ff00'
+    }
+  ]
+  'params' STORE
+
+  { 'interpolate' 'cardinal' }
+  'globalParams' STORE
+
+  {
+    'gts' $gts
+    'params' $params
+    'globalParams' $globalParams
+  }
+</warp10-geoquantumviz>
+
+    <template is="dom-if" if="{{current}}">
+        <div class="current-value">
+          <b>Current values:
+        <br/>
+          x: <span>{{current.xValue}}</span>
+        <br/>
+          <ul>
+          <template is="dom-repeat" items="{{current.yValues}}">
+            <li>
+              key: <span>{{item.key}}</span>
+              value: <span>{{item.value}}</span>
+            </li>
+          </template>
+          </ul>
+        </div>
+    </template>
+  </div>
+</template>
+
+<div></div>
+
+
+  <p>By <a href="http://cityzendata.com">Cityzen Data</a></p>
+</body>
+</html>
