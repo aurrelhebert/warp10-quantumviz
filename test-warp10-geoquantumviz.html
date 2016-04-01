@@ -104,7 +104,10 @@ This code may only be used under the BSD style license found at http://polymer.g
   }
 
   {
-    'positions' [ [ 51.40 -0.52 42 ] [ 51.56 -0.40 21 ] [ 51.42 -0.60 84 ] ]
+    'positions' [
+      [ 51.10 -0.52 42 10 ] [ 51.56 -0.40 21  30 ] [ 51.42 -0.60 84 40 ]
+      [ 51.30 -0.82 42 1 ] [ 51.76 -0.70 21  20 ] [ 51.62 -0.90 84 45 ]
+    ]
   }
 
   8 ->LIST
@@ -116,9 +119,12 @@ This code may only be used under the BSD style license found at http://polymer.g
     { 'key' 'Annotations (text)' 'render' 'marker'  'marker' 'fuel' }
     { 'key' 'Annotations (boolean)' }
     { 'key' 'fuel'   'render' 'marker'   }
-    { 'key' 'points' 'render' 'dots' 'color' '#aaf' 'borderColor' '#f00' }
+    { 'key' 'points' 'render' 'dots' 'color' '#afa' 'borderColor' '#f00' }
     { 'key' 'points' 'render' 'weightedDots' 'color' '#aaf' 'borderColor' '#f00' 'maxValue' 100 'minValue' 0 'baseRadius' 15 'numSteps' 10 }
-    { 'key' 'points' 'render' 'weightedDots'  'maxValue' 100 'minValue' 0 }
+    {
+      'key' 'points' 'render' 'coloredWeightedDots'  'maxValue' 100 'minValue' 0
+      'maxColorValue' 50 'minColorValue' 0 'numColorSteps' 10 'startColor' '#ff0000' 'endColor' '#00ff00'
+    }
   ]
   'params' STORE
 

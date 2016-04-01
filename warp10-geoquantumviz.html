@@ -176,14 +176,28 @@
               L.marker(positionData.positions[j], {icon: icon, opacity: 1} ).addTo(map);
             }
             break;
+          case 'coloredWeightedDots':
+            for (var j=0; j<positionData.positions.length; j++ ) {
+              L.circleMarker(
+                positionData.positions[j],{
+                  radius: positionData.baseRadius*(parseInt(positionData.positions[j][4])+1),
+                  color:  positionData.borderColor,
+                  fillColor: quantumvizGts.rgb2hex(
+                    positionData.colorGradient[positionData.positions[j][5]].r,
+                    positionData.colorGradient[positionData.positions[j][5]].g,
+                    positionData.colorGradient[positionData.positions[j][5]].b),
+                  fillOpacity: 1
+                }).addTo(map);
+                // console.debug('[warp10-geoquantumviz] _plotPositionArray, coloredWeightedDots', { positions: positionData.positions,fillColor: quantumvizGts.rgb2hex( positionData.colorGradient[positionData.positions[j][5]].r,                 positionData.colorGradient[positionData.positions[j][5]].g,  positionData.colorGradient[positionData.positions[j][5]].b) })
+            }
+            break;
           case 'weightedDots':
             for (var j=0; j<positionData.positions.length; j++ ) {
               L.circleMarker(
                 positionData.positions[j],{
-                  radius: positionData.baseRadius*positionData.positions[j][3],
+                  radius:positionData.baseRadius*(parseInt(positionData.positions[j][4])+1),
                   color:  positionData.borderColor,
-                  fillColor:
-                  positionData.color, fillOpacity: 1
+                  fillColor: positionData.color, fillOpacity: 1
                 }).addTo(map);
             }
             break;
