@@ -1,507 +1,647 @@
 <link rel="import" href="../warp10-iron/warp10-gts-tools.html">
 
 <script>
-  (function() {
-    var quantumvizGts = {};
+(function() {
+  var quantumvizGts = {};
 
-    /***********************************************************************************
-     * Quantumviw response format
-     *
-     *  {
-     *    gts: [ `gts_list` ],          // a LIST of GTS to plot
-     *    params: [ `parameter` ],      // a LIST of visualisation parameters for each GTS to plot
-     *    globalParams                  // (optional)  a MAP of global visualisations parameters
-     *  }
-     *
-     *  where each `parameter` in `params` or `annotationsParams` is:
-     *  {
-     *    key,                          // the legend to associate to the GTS
-     *    color                         // (optional) the color of the line,
-     *                                  //  as an CSS compliant color STRING (e.g.: #cc0505)
-     *  }
-     * and `globalParams` is :
-     *  {
-     *    interpolate                   // the interpolating function used. Default mode is
-     *                                  // `step-before`, other usual modes are `linear`, `basis`
-     *                                  // and `cardinal`
-     *  }
-     ***********************************************************************************/
+  /***********************************************************************************
+  * Quantumviw response format
+  *
+  *  {
+  *    gts: [ `gts_list` ],          // a LIST of GTS to plot
+  *    params: [ `parameter` ],      // a LIST of visualisation parameters for each GTS to plot
+  *    globalParams                  // (optional)  a MAP of global visualisations parameters
+  *  }
+  *
+  *  where each `parameter` in `params` or `annotationsParams` is:
+  *  {
+  *    key,                          // the legend to associate to the GTS
+  *    color                         // (optional) the color of the line,
+  *                                  //  as an CSS compliant color STRING (e.g.: #cc0505)
+  *  }
+  * and `globalParams` is :
+  *  {
+  *    interpolate                   // the interpolating function used. Default mode is
+  *                                  // `step-before`, other usual modes are `linear`, `basis`
+  *                                  // and `cardinal`
+  *  }
+  ***********************************************************************************/
 
-     /***********************************************************************************
-     * Constants
-     ***********************************************************************************/
-     quantumvizGts.MIN_TS = 0;
-     quantumvizGts.MAX_TS = Math.pow(2, 53) - 1;
-     quantumvizGts.palette = [
-       '#001f3f', // NAVY
-       '#0074D9', // BLUE
-       '#7FDBFF', // AQUA
-       '#39CCCC', // TEAL
-       '#3D9970', // OLIVE
-       '#2ECC40', // GREEN
-       '#01FF70', // LIME
-       '#FFDC00', // YELLOW
-       '#FF851B', // ORANGE
-       '#FF4136', // RED
-       '#85144b', // MAROON
-       '#F012BE', // FUSCHIA
-       '#B10DC9', // PURPLE
-       '#111111', // BLACK
-       '#AAAAAA', // GRAY
-       '#DDDDDD' // SILVER
-     ]
+  /***********************************************************************************
+  * Constants
+  ***********************************************************************************/
+  quantumvizGts.MIN_TS = 0;
+  quantumvizGts.MAX_TS = Math.pow(2, 53) - 1;
+  quantumvizGts.palette = [
+    '#001f3f', // NAVY
+    '#0074D9', // BLUE
+    '#7FDBFF', // AQUA
+    '#39CCCC', // TEAL
+    '#3D9970', // OLIVE
+    '#2ECC40', // GREEN
+    '#01FF70', // LIME
+    '#FFDC00', // YELLOW
+    '#FF851B', // ORANGE
+    '#FF4136', // RED
+    '#85144b', // MAROON
+    '#F012BE', // FUSCHIA
+    '#B10DC9', // PURPLE
+    '#111111', // BLACK
+    '#AAAAAA', // GRAY
+    '#DDDDDD' // SILVER
+  ]
+
+  /***********************************************************************************
+  * Getting color from palette
+  ***********************************************************************************/
+  quantumvizGts.getColor = function(i) {
+    return quantumvizGts.palette[i % quantumvizGts.palette.length];
+  }
 
 
-     quantumvizGts.getColor = function(i) {
-       return quantumvizGts.palette[i % quantumvizGts.palette.length];
-     }
+  /***********************************************************************************
+  * Calculate HSV from RGB values
+  * r,g & b integer between 0 and 255
+  * @param r
+  * @param g
+  * @param b
+  ***********************************************************************************/
+  quantumvizGts.rgb2hsv = function (r,g,b) {
+    // Normalize
+    var normR = r/255,
+      normG = g/255,
+      normB = b/255
 
-    /***********************************************************************************
-    * Transforms quantumviz response object into nvd3 graphs objects
-    ***********************************************************************************/
-    quantumvizGts.toNvd3Graph = function(data) {
 
-      if (!quantumvizGts.isValidResponse(data)) {
-        return false;
+    var M = Math.max(normR, normG, normB);
+    var m = Math.min(normR, normG, normB);
+    var d = M - m;
+
+    var h,s,v;
+
+    v = M;
+    if (d==0) {
+      h = 0;
+      s = 0;
+    } else {
+      s = d/v
+      switch (M) {
+        case normR:
+          h = ((normG - normB) + d*(normG < normB ? 6: 0)) / 6 * d;
+          break;
+        case normG:
+          h = ((normB - normR) + d*2) / 6 * d;
+          break;
+        case normB:
+          h = ((normR - normG) + d*4) / 6 * d;
+          break;
       }
-
-      var response = data[0];
-
-      var chartData = {}
-
-      var sparklines = [];
-      for (var i=0; i< response.gts.length; i++) {
-        // Let's verify if it's a GTS to plot
-        if (gtsTools.isGtsToPlot(response.gts[i])) {
-          var sl = quantumvizGts.gtsToNvd3(response.gts[i]);
-          if (response.params[i].key !== undefined) {
-            sl.key = response.params[i].key;
-          }
-          if (response.params[i].color !== undefined) {
-            sl.color = response.params[i].color;
-          }
-          sl.area = false;
-          if (response.params[i].interpolate !== undefined) {
-            sl.interpolate = response.params[i].interpolate;
-          } else {
-            sl.interpolate = "step-before";
-          }
-          sparklines.push(sl);
-        }
-      }
-
-      var tickFormat = function(d) {
-          var dx = sparklines[0].values[d] && sparklines[0].values[d].x || 0;
-          return dx ? d3.time.format('%x')(new Date(dx)) : '';
-      }
-
-      var globalParams = {}
-
-      globalParams.interpolate = "step-before";
-
-      if (response.globalParams !== undefined) {
-        if (response.globalParams.interpolate !== undefined) {
-          globalParams.interpolate = response.globalParams.interpolate;
-        }
-      }
-
-      chartData.sparklines = sparklines;
-      chartData.globalParams = globalParams;
-      chartData.tickFormat = tickFormat;
-
-      //console.debug("nvd3 data", chartData);
-      //console.debug(JSON.stringify(chartData))
-
-      return chartData;
-    };
-
-
-    /***********************************************************************************
-    * Transforms quantumviz response object into annotation objects
-    ***********************************************************************************/
-    quantumvizGts.getAnnotations = function(data) {
-
-      if (!quantumvizGts.isValidResponse(data)) {
-        return false;
-      }
-      var response = data[0];
-
-      if (!gtsTools.isArray(response.gts)) {
-        return []
-      }
-
-      var annotations = [];
-
-      for (var i=0; i< response.gts.length; i++) {
-        // Let's verify if it's a GTS to plot
-        if (gtsTools.isGtsToAnnotate(response.gts[i])) {
-          var annotation = quantumvizGts.gtsToNvd3(response.gts[i]);
-          if ((response.params !== undefined)
-              && (response.params[i].key !== undefined)) {
-            annotation.key = response.params[i].key;
-          } else {
-            annotation.key = annotation.c;
-          }
-          if ((response.params !== undefined)
-              && (response.params[i].color !== undefined)) {
-            annotation.color = response.params[i].color;
-          } else {
-            annotation.color = quantumvizGts.getColor(i);
-          }
-          annotations.push(annotation);
-        }
-      }
-
-      return annotations;
-    };
-
-    /**
-     * Transforms quantumviz response object into leaflet-map position array
-     */
-    quantumvizGts.toLeafletMapPositionArray = function(data) {
-
-      if (!quantumvizGts.isValidResponse(data)) {
-        return false;
-      }
-
-      var response = data[0];
-
-
-      var positions = [];
-
-      for (var i=0; i< response.gts.length; i++) {
-        if (gtsTools.isPositionArray(response.gts[i])) {
-          var posArray = {};
-          posArray = response.gts[i];
-
-          if (response.params[i].key !== undefined) {
-            posArray.key = response.params[i].key;
-          } else if (posArray.key === undefined ){
-            posArray.key = "circle";
-          }
-
-          if (response.params[i].render !== undefined) {
-            posArray.render = response.params[i].render;
-          }
-
-          if (posArray.render == 'weightedDots') {
-            quantumvizGts.validateWeightedDotsPositionArray(posArray, response.params[i]);
-          }
-
-          if (response.params[i].color !== undefined) {
-            posArray.color = response.params[i].color;
-          } else {
-            posArray.color = quantumvizGts.getColor(i);
-          }
-
-          if (response.params[i].borderColor !== undefined) {
-            posArray.borderColor = response.params[i].borderColor;
-          } else {
-            posArray.borderColor = "#000";
-          }
-
-          positions.push(posArray);
-        }
-      }
-
-      return positions;
     }
+    return {
+        h: h,
+        s: s,
+        v: v
+    };
+  }
 
+  /***********************************************************************************
+  * Calculate HSV gradient from RGB values
+  * @param c1 : initial color (in RGB, { r: xx, g: xx, b: xx} r,g & b integer between 0 and 255)
+  * @param c2 : final color (in RGB, { r: xx, g: xx, b: xx} r,g & b integer between 0 and 255)
+  ***********************************************************************************/
+  quantumvizGts.hsvGradientFromRgbColors = function (c1, c2, steps) {
+    var gradient = quantumvizGts.hsvGradient(
+      quantumvizGts.rgb2hsv(c1.r,c1.g,c1.b),
+      quantumvizGts.rgb2hsv(c2.r,c2.g,c2.b),
+      steps
+    );
+    return gradient;
+  }
 
-    quantumvizGts.validateWeightedDotsPositionArray = function (posArray, params) {
-      if (params.minValue === undefined || params.maxValue === undefined) {
-        console.error("[quantumviz-tools] validateWeightedDotsPositionArray() - When using 'weightedDots' rendering, 'maxValue' and 'minValue' parameters are compulsory");
-        posArray.render = undefined;
-        return;
+  /***********************************************************************************
+  * Calculate HSV gradient
+  * @param c1 : initial color (in HSV, { h: xx, s: xx, b: xx} h,s & b between 0 and 1)
+  * @param c2 : final color (in HSV, { h: xx, s: xx, b: xx} h,s & b between 0 and 1)
+  ***********************************************************************************/
+  quantumvizGts.hsvGradient = function (c1, c2, steps) {
+    var gradient = new Array(steps);
+
+    // determine clockwise and counter-clockwise distance between hues
+    var distCCW = (c1.h >= c2.h) ? c1.h - c2.h : 1 + c1.h - c2.h;
+    distCW = (c1.h >= c2.h) ? 1 + c2.h - c1.h : c2.h - c1.h;
+
+    // make gradient for this part
+    for (var i = 0; i < steps; i ++) {
+      // interpolate h, s, b
+      var h = (distCW <= distCCW) ? c1.h + (distCW * i / steps) : c1.h - (distCCW * i / steps);
+      if (h < 0) {
+        h = 1 + h
       }
-
-      posArray.maxValue = params.maxValue;
-      posArray.minValue = params.minValue;
-
-
-      if (typeof posArray.minValue != "number" || typeof posArray.maxValue != "number" || posArray.minValue >= posArray.maxValue  ) {
-        console.error("[quantumviz-tools] validateWeightedDotsPositionArray() - When using 'weightedDots' rendering, 'maxValue' and 'minValue' must be numbers and 'maxValue' must be greater than 'minValue'");
-        posArray.render = undefined;
-        return;
+      if (h > 1) {
+        h = h - 1
       }
-      if (!gtsTools.isPositionsArrayWithValues(posArray)) {
-        console.error("[quantumviz-tools] validateWeightedDotsPositionArray() - When using 'weightedDots' rendering, positions must have an associated value");
-        posArray.render = undefined;
-        return;
-      }
+      var s = (1 - i / steps) * c1.s + i / steps * c2.s;
+      var b = (1 - i / steps) * c1.b + i / steps * c2.b;
+      // add to gradient array
+      gradient[i] = {h:h, s:s, b:b};
+    }
+  }
+  return gradient;
+}
 
-      if (params.baseRadius === undefined || isNaN(parseInt(params.baseRadius)) || parseInt(params.baseRadius) < 0 ) {
-        posArray.baseRadius = 10;
+/***********************************************************************************
+* Transforms quantumviz response object into nvd3 graphs objects
+***********************************************************************************/
+quantumvizGts.toNvd3Graph = function(data) {
+
+  if (!quantumvizGts.isValidResponse(data)) {
+    return false;
+  }
+
+  var response = data[0];
+
+  var chartData = {}
+
+  var sparklines = [];
+  for (var i=0; i< response.gts.length; i++) {
+    // Let's verify if it's a GTS to plot
+    if (gtsTools.isGtsToPlot(response.gts[i])) {
+      var sl = quantumvizGts.gtsToNvd3(response.gts[i]);
+      if (response.params[i].key !== undefined) {
+        sl.key = response.params[i].key;
+      }
+      if (response.params[i].color !== undefined) {
+        sl.color = response.params[i].color;
+      }
+      sl.area = false;
+      if (response.params[i].interpolate !== undefined) {
+        sl.interpolate = response.params[i].interpolate;
       } else {
-        posArray.baseRadius = params.baseRadius;
+        sl.interpolate = "step-before";
       }
-      if (params.numSteps === undefined || isNaN(parseInt(params.numSteps)) || parseInt(params.numSteps) < 0 ) {
-        posArray.numSteps = 5;
+      sparklines.push(sl);
+    }
+  }
+
+  var tickFormat = function(d) {
+    var dx = sparklines[0].values[d] && sparklines[0].values[d].x || 0;
+    return dx ? d3.time.format('%x')(new Date(dx)) : '';
+  }
+
+  var globalParams = {}
+
+  globalParams.interpolate = "step-before";
+
+  if (response.globalParams !== undefined) {
+    if (response.globalParams.interpolate !== undefined) {
+      globalParams.interpolate = response.globalParams.interpolate;
+    }
+  }
+
+  chartData.sparklines = sparklines;
+  chartData.globalParams = globalParams;
+  chartData.tickFormat = tickFormat;
+
+  //console.debug("nvd3 data", chartData);
+  //console.debug(JSON.stringify(chartData))
+
+  return chartData;
+};
+
+
+/***********************************************************************************
+* Transforms quantumviz response object into annotation objects
+***********************************************************************************/
+quantumvizGts.getAnnotations = function(data) {
+
+  if (!quantumvizGts.isValidResponse(data)) {
+    return false;
+  }
+  var response = data[0];
+
+  if (!gtsTools.isArray(response.gts)) {
+    return []
+  }
+
+  var annotations = [];
+
+  for (var i=0; i< response.gts.length; i++) {
+    // Let's verify if it's a GTS to plot
+    if (gtsTools.isGtsToAnnotate(response.gts[i])) {
+      var annotation = quantumvizGts.gtsToNvd3(response.gts[i]);
+      if ((response.params !== undefined)
+      && (response.params[i].key !== undefined)) {
+        annotation.key = response.params[i].key;
       } else {
-        posArray.numSteps = params.numSteps;
+        annotation.key = annotation.c;
       }
-      var step = (posArray.maxValue - posArray.minValue) / posArray.numSteps;
-      var steps = []
-      for (var j = 0; j < posArray.numSteps-1; j++) {
-        steps[j] = posArray.minValue+ (j+1)*step;
+      if ((response.params !== undefined)
+      && (response.params[i].color !== undefined)) {
+        annotation.color = response.params[i].color;
+      } else {
+        annotation.color = quantumvizGts.getColor(i);
       }
-      steps[posArray.numSteps-1] = posArray.maxValue;
+      annotations.push(annotation);
+    }
+  }
 
-      // console.debug("[quantumviz-tools] validateWeightedDotsPositionArray() - steps", steps)
-      for (var j in posArray.positions) {
-        var value = posArray.positions[j][2];
-        for (var k in steps) {
-          if (value < steps[k]) {
-            var stepAssociatedToValue = k;
-            posArray.positions[j][3] = stepAssociatedToValue;
-            break;
-          }
-        }
+  return annotations;
+};
+
+/**
+* Transforms quantumviz response object into leaflet-map position array
+*/
+quantumvizGts.toLeafletMapPositionArray = function(data) {
+
+  if (!quantumvizGts.isValidResponse(data)) {
+    return false;
+  }
+
+  var response = data[0];
+
+
+  var positions = [];
+
+  for (var i=0; i< response.gts.length; i++) {
+    if (gtsTools.isPositionArray(response.gts[i])) {
+      var posArray = {};
+      posArray = response.gts[i];
+
+      if (response.params[i].key !== undefined) {
+        posArray.key = response.params[i].key;
+      } else if (posArray.key === undefined ){
+        posArray.key = "circle";
+      }
+
+      if (response.params[i].render !== undefined) {
+        posArray.render = response.params[i].render;
+      }
+
+      if (posArray.render == 'weightedDots') {
+        quantumvizGts.validateWeightedDotsPositionArray(posArray, response.params[i]);
+      }
+
+      if (response.params[i].color !== undefined) {
+        posArray.color = response.params[i].color;
+      } else {
+        posArray.color = quantumvizGts.getColor(i);
+      }
+
+      if (response.params[i].borderColor !== undefined) {
+        posArray.borderColor = response.params[i].borderColor;
+      } else {
+        posArray.borderColor = "#000";
+      }
+
+      positions.push(posArray);
+    }
+  }
+
+  return positions;
+}
+
+quantumvizGts.validateWeightedColoredDotsPositionArray = function (posArray, params) {
+  if (!quantumvizGts.validateWeightedColoredDotsPositionArray(posArray, params)) {
+    return;
+  }
+
+  if (params.minColorValue === undefined || params.maxColorValue === undefined || params.startColor === undefined || params.endColor === undefined) {
+    console.error("[quantumviz-tools] validateWeightedColoredDotsPositionArray() - When using 'weightedColoredDots' rendering, 'maxColorValue', 'minColorValue', 'startColor' and 'endColor' parameters are compulsory");
+    posArray.render = undefined;
+    return;
+  }
+
+  posArray.maxValue = params.maxColorValue;
+  posArray.minValue = params.minColorValue;
+  params.startColor;
+  params.endColor;
+
+  if (typeof posArray.minColorValue != "number" || typeof posArray.maxColorValue != "number" || posArray.minColorValue >= posArray.maxColorValue  ) {
+    console.error("[quantumviz-tools] validateWeightedColoredDotsPositionArray() - When using weightedColoredDots' rendering, 'maxColorValue' and 'minColorValue' must be numbers and 'maxColorValue' must be greater than 'minColorValue'");
+    posArray.render = undefined;
+    return;
+  }
+
+  var re = /#[0-9A-Fa-f]{6}/g;
+
+  if (typeof params.startColor != "string"
+      || typeof params.endColor != "string"
+      || !re.test(params.startColor)
+      || !re.test(params.endColor) ){
+    console.error("[quantumviz-tools] validateWeightedColoredDotsPositionArray() - When using weightedColoredDots' rendering, 'startColor' and 'endColor' parameters must be RGB colors in #rrggbb format");
+    posArray.render = undefined;
+    return;
+  }
+
+  posArray.startColor = {
+    r: parseInt(params.startColor.substring(1,3)),
+    g: parseInt(params.startColor.substring(3,5)),
+    v: parseInt(params.startColor.substring(5,7))
+  }
+
+  posArray.endColor = {
+    r: parseInt(params.endColor.substring(1,3)),
+    g: parseInt(params.endColor.substring(3,5)),
+    v: parseInt(params.endColor.substring(5,7)) 
+  }
+
+}
+
+
+quantumvizGts.validateWeightedDotsPositionArray = function (posArray, params) {
+  if (params.minValue === undefined || params.maxValue === undefined) {
+    console.error("[quantumviz-tools] validateWeightedDotsPositionArray() - When using 'weightedDots' or 'weightedColoredDots' rendering, 'maxValue' and 'minValue' parameters are compulsory");
+    posArray.render = undefined;
+    return;
+  }
+
+  posArray.maxValue = params.maxValue;
+  posArray.minValue = params.minValue;
+
+
+  if (typeof posArray.minValue != "number" || typeof posArray.maxValue != "number" || posArray.minValue >= posArray.maxValue  ) {
+    console.error("[quantumviz-tools] validateWeightedDotsPositionArray() - When using 'weightedDots' or 'weightedColoredDots' rendering, 'maxValue' and 'minValue' must be numbers and 'maxValue' must be greater than 'minValue'");
+    posArray.render = undefined;
+    return;
+  }
+  if (!gtsTools.isPositionsArrayWithValues(posArray)) {
+    console.error("[quantumviz-tools] validateWeightedDotsPositionArray() - When using 'weightedDots' or 'weightedColoredDots' rendering, positions must have an associated value");
+    posArray.render = undefined;
+    return;
+  }
+
+  if (params.baseRadius === undefined || isNaN(parseInt(params.baseRadius)) || parseInt(params.baseRadius) < 0 ) {
+    posArray.baseRadius = 10;
+  } else {
+    posArray.baseRadius = params.baseRadius;
+  }
+  if (params.numSteps === undefined || isNaN(parseInt(params.numSteps)) || parseInt(params.numSteps) < 0 ) {
+    posArray.numSteps = 5;
+  } else {
+    posArray.numSteps = params.numSteps;
+  }
+  var step = (posArray.maxValue - posArray.minValue) / posArray.numSteps;
+  var steps = []
+  for (var j = 0; j < posArray.numSteps-1; j++) {
+    steps[j] = posArray.minValue+ (j+1)*step;
+  }
+  steps[posArray.numSteps-1] = posArray.maxValue;
+
+  // console.debug("[quantumviz-tools] validateWeightedDotsPositionArray() - steps", steps)
+  for (var j in posArray.positions) {
+    var value = posArray.positions[j][2];
+    for (var k in steps) {
+      if (value < steps[k]) {
+        var stepAssociatedToValue = k;
+        posArray.positions[j][3] = stepAssociatedToValue;
+        break;
       }
     }
+  }
+}
 
-    /***********************************************************************************
-    * Transforms annotations GTS from quantumviz response object into leaflet-map
-    * positions arrays
-    ***********************************************************************************/
-    quantumvizGts.annotationsToLeafletPositions = function(data) {
-      if (!quantumvizGts.isValidResponse(data)) {
-        return false;
+/***********************************************************************************
+* Transforms annotations GTS from quantumviz response object into leaflet-map
+* positions arrays
+***********************************************************************************/
+quantumvizGts.annotationsToLeafletPositions = function(data) {
+  if (!quantumvizGts.isValidResponse(data)) {
+    return false;
+  }
+
+  var response = data[0];
+
+  var annotations = [];
+
+  for (var i=0; i< response.gts.length; i++) {
+    if (gtsTools.isGtsToAnnotate(response.gts[i])) {
+      var annotation = {};
+
+      annotation.path = gtsTools.gtsToPath(response.gts[i]);
+
+      if (response.params[i].key !== undefined) {
+        annotation.key = response.params[i].key;
       }
 
-      var response = data[0];
+      if (response.params[i].render !== undefined) {
+        annotation.render = response.params[i].render;
+      }
 
-      var annotations = [];
+      if (annotation.render == 'marker') {
 
-      for (var i=0; i< response.gts.length; i++) {
-        if (gtsTools.isGtsToAnnotate(response.gts[i])) {
-          var annotation = {};
-
-          annotation.path = gtsTools.gtsToPath(response.gts[i]);
-
-          if (response.params[i].key !== undefined) {
-            annotation.key = response.params[i].key;
-          }
-
-          if (response.params[i].render !== undefined) {
-            annotation.render = response.params[i].render;
-          }
-
-          if (annotation.render == 'marker') {
-
-            if (response.params[i].marker) {
-              annotation.marker = response.params[i].marker ;
-            } else {
-              annotation.marker = "circle";
-            }
-          }
-          if (annotation.render == 'weightedDots') {
-            quantumvizGts.validateWeightedDotsPositionArray(annotation, response.params[i]);
-          }
-
-          if (response.params[i].color !== undefined) {
-            annotation.color = response.params[i].color;
-          } else {
-            annotation.color = quantumvizGts.getColor(i);
-          }
-
-          if (response.params[i].borderColor !== undefined) {
-            annotation.borderColor = response.params[i].borderColor;
-          } else {
-            annotation.borderColor = "#000";
-          }
-
-          annotations.push(annotation);
+        if (response.params[i].marker) {
+          annotation.marker = response.params[i].marker ;
+        } else {
+          annotation.marker = "circle";
         }
       }
-      // console.debug("[quantumviz-tools] annotationsToLeafletPositions", annotation)
-      return annotations;
+      if (annotation.render == 'weightedDots') {
+        quantumvizGts.validateWeightedDotsPositionArray(annotation, response.params[i]);
+      }
 
+      if (response.params[i].color !== undefined) {
+        annotation.color = response.params[i].color;
+      } else {
+        annotation.color = quantumvizGts.getColor(i);
+      }
+
+      if (response.params[i].borderColor !== undefined) {
+        annotation.borderColor = response.params[i].borderColor;
+      } else {
+        annotation.borderColor = "#000";
+      }
+
+      annotations.push(annotation);
     }
+  }
+  // console.debug("[quantumviz-tools] annotationsToLeafletPositions", annotation)
+  return annotations;
 
-    /***********************************************************************************
-    * Transforms GTS from quantumviz response object into leaflet-map paths
-    ***********************************************************************************/
-    quantumvizGts.toLeafletMapPaths = function(data) {
+}
 
-      if (!quantumvizGts.isValidResponse(data)) {
-        return false;
+/***********************************************************************************
+* Transforms GTS from quantumviz response object into leaflet-map paths
+***********************************************************************************/
+quantumvizGts.toLeafletMapPaths = function(data) {
+
+  if (!quantumvizGts.isValidResponse(data)) {
+    return false;
+  }
+
+  var response = data[0];
+
+  var paths = [];
+
+  for (var i=0; i< response.gts.length; i++) {
+
+    if (gtsTools.isGtsToPlot(response.gts[i])) {
+      var sl = {}
+
+      sl.path = gtsTools.gtsToPath(response.gts[i]);
+
+      if (response.params[i].key !== undefined) {
+        sl.key = response.params[i].key;
       }
 
-      var response = data[0];
-
-      var paths = [];
-
-      for (var i=0; i< response.gts.length; i++) {
-
-        if (gtsTools.isGtsToPlot(response.gts[i])) {
-          var sl = {}
-
-          sl.path = gtsTools.gtsToPath(response.gts[i]);
-
-          if (response.params[i].key !== undefined) {
-            sl.key = response.params[i].key;
-          }
-
-          if (response.params[i].color !== undefined) {
-            sl.color = response.params[i].color;
-          } else {
-            sl.color = quantumvizGts.getColor(i);
-          }
-
-          // console.debug("[quantumviz-tools] toLeafletMapPaths - color", sl.color);
-          paths.push(sl);
-        }
-      }
-      //console.debug("Paths",paths);
-
-      return paths;
-    };
-
-    /***********************************************************************************
-    * Tranform a pathData @pathData into Leaflet path
-    ***********************************************************************************/
-    quantumvizGts.pathDataToLeaflet = function(pathData, options) {
-
-      var path = [];
-
-      var firstIndex = ((options === undefined) || (options.from === undefined) || (options.from < 0) )?0:options.from;
-      var lastIndex =  ((options === undefined) || (options.to === undefined) || (options.to >= pathData.length) )?pathData.length-1:options.to;
-
-      for (var i=firstIndex; i<= lastIndex; i++) {
-        path.push([pathData[i].lat, pathData[i].lon]);
+      if (response.params[i].color !== undefined) {
+        sl.color = response.params[i].color;
+      } else {
+        sl.color = quantumvizGts.getColor(i);
       }
 
-      return path;
-    };
-
-
-    /***********************************************************************************
-    * Gets the points array for the map bounds
-    ***********************************************************************************/
-    quantumvizGts.getBoundsArray = function(paths, positionsData) {
-      var boundsArray = [];
-      for (var i=0; i< paths.length; i++) {
-        for (var j=0; j<paths[i].path.length; j++) {
-          boundsArray.push([paths[i].path[j].lat,paths[i].path[j].lon])
-        }
-      }
-      for (var i=0; i< positionsData.length; i++) {
-        for (var j=0; j<positionsData[i].positions.length; j++) {
-          boundsArray.push(positionsData[i].positions[j])
-        }
-      }
-      return boundsArray;
-    };
-
-
-
-
-
-    /***********************************************************************************
-    * Get time bounds for Nvd3 formatted GTS
-    ***********************************************************************************/
-    quantumvizGts.getTimeBounds = function(ndv3SeriesList) {
-
-      var bounds = {}
-
-      if (!gtsTools.isArray(ndv3SeriesList)) {
-        console.error("[quantumvizGts.getTimeBounds] ndv3SeriesList isn't array",ndv3SeriesList);
-        return bounds;
-      }
-
-      bounds.min = quantumvizGts.MAX_TS;
-      bounds.max = quantumvizGts.MIN_TS;
-
-      ndv3SeriesList.forEach(function(ndv3Series) {
-        // console.debug("[quantumvizGts.getTimeBounds] Min:",ndv3Series.values[0].x)
-        // console.debug("[quantumvizGts.getTimeBounds] Max: ", ndv3Series.values[ndv3Series.values.length - 1].x);
-        if (bounds.min > ndv3Series.values[0].x) {
-          bounds.min = ndv3Series.values[0].x;
-        }
-        if (bounds.max < ndv3Series.values[ndv3Series.values.length - 1].x) {
-          bounds.max = ndv3Series.values[ndv3Series.values.length - 1].x;
-        }
-      });
-
-      // console.debug("[quantumvizGts.getTimeBounds] bounds...", bounds);
-      return bounds;
+      // console.debug("[quantumviz-tools] toLeafletMapPaths - color", sl.color);
+      paths.push(sl);
     }
+  }
+  //console.debug("Paths",paths);
 
-    /***********************************************************************************
-    * Tranform a gts @gts into nvd3 format
-    ***********************************************************************************/
-    quantumvizGts.gtsToNvd3 = function(gts) {
-      var ndv3Series = {
-        key: "",
-        values: [],
-        c: "",
-        l: "",
-        id: ""
-      };
-      ndv3Series.c = gts.c;
-      ndv3Series.l = gts.l;
-      ndv3Series.id = gts.id;
-      ndv3Series.key = " " + gts.id + " - " + gts.c;
-      if (gts.l != null) {
-        ndv3Series.key += " - " + (JSON.stringify(gts.l));
-      }
+  return paths;
+};
 
-      if (gts.v !== undefined) {
+/***********************************************************************************
+* Tranform a pathData @pathData into Leaflet path
+***********************************************************************************/
+quantumvizGts.pathDataToLeaflet = function(pathData, options) {
 
-        // Sort values
-        gts.v = gts.v.sort(function(a, b) { return a[0] - b[0];});
+  var path = [];
 
-        //console.debug(gts)
-        for (var i = 0; i < gts.v.length; i++) {
-          var metric = gts.v[i];
-          ndv3Series.values.push({x: Math.round(metric[0] / 1000), y: metric[metric.length-1]});
+  var firstIndex = ((options === undefined) || (options.from === undefined) || (options.from < 0) )?0:options.from;
+  var lastIndex =  ((options === undefined) || (options.to === undefined) || (options.to >= pathData.length) )?pathData.length-1:options.to;
 
-         // ndv3Series.values.push({x: new Date(metric[0]/1000), y: metric[metric.length-1]});
-        }
-      }
-      return ndv3Series;
-    };
+  for (var i=firstIndex; i<= lastIndex; i++) {
+    path.push([pathData[i].lat, pathData[i].lon]);
+  }
+
+  return path;
+};
 
 
-    /***********************************************************************************
-    * Returns true if @data is a valid quantumviz response object
-    ***********************************************************************************/
-    quantumvizGts.isValidResponse = function(response) {
+/***********************************************************************************
+* Gets the points array for the map bounds
+***********************************************************************************/
+quantumvizGts.getBoundsArray = function(paths, positionsData) {
+  var boundsArray = [];
+  for (var i=0; i< paths.length; i++) {
+    for (var j=0; j<paths[i].path.length; j++) {
+      boundsArray.push([paths[i].path[j].lat,paths[i].path[j].lon])
+    }
+  }
+  for (var i=0; i< positionsData.length; i++) {
+    for (var j=0; j<positionsData[i].positions.length; j++) {
+      boundsArray.push(positionsData[i].positions[j])
+    }
+  }
+  return boundsArray;
+};
 
-      if (!gtsTools.isArray(response) || (response.length != 1)) {
-        console.error("Response isn't an Array or it has more than 1 element: ",response);
-        return false;
-      }
-      response = response[0];
 
-      if ((response.gts === undefined) || (response.params == undefined)) {
-        console.error("Response hasn't gts and/or params components",response);
-        return false;
-      }
 
-      if (!gtsTools.isArray(response.gts) || !gtsTools.isArray(response.params)) {
-        console.error("Response's gts and/or params components aren't arrays",response);
-        return false;
-      }
 
-      if (response.gts.length != response.params.length) {
-        console.error("Response's gts and params components haven't the same length",response);
-        return false;
-      }
 
-      if ((response.annotations !== undefined) && !gtsTools.isArray(response.annotations)) {
-        console.error("Response's annotations component isn't an array");
-        return false;
-      }
-      if ((response.annotationsParams !== undefined) && !gtsTools.isArray(response.annotationsParams)) {
-        console.error("Response's annotationsParams component isn't an array");
-        return false;
-      }
+/***********************************************************************************
+* Get time bounds for Nvd3 formatted GTS
+***********************************************************************************/
+quantumvizGts.getTimeBounds = function(ndv3SeriesList) {
 
-      return true;
-    };
+  var bounds = {}
 
-    window.quantumvizGts = quantumvizGts;
-  }).call(this);
+  if (!gtsTools.isArray(ndv3SeriesList)) {
+    console.error("[quantumvizGts.getTimeBounds] ndv3SeriesList isn't array",ndv3SeriesList);
+    return bounds;
+  }
+
+  bounds.min = quantumvizGts.MAX_TS;
+  bounds.max = quantumvizGts.MIN_TS;
+
+  ndv3SeriesList.forEach(function(ndv3Series) {
+    // console.debug("[quantumvizGts.getTimeBounds] Min:",ndv3Series.values[0].x)
+    // console.debug("[quantumvizGts.getTimeBounds] Max: ", ndv3Series.values[ndv3Series.values.length - 1].x);
+    if (bounds.min > ndv3Series.values[0].x) {
+      bounds.min = ndv3Series.values[0].x;
+    }
+    if (bounds.max < ndv3Series.values[ndv3Series.values.length - 1].x) {
+      bounds.max = ndv3Series.values[ndv3Series.values.length - 1].x;
+    }
+  });
+
+  // console.debug("[quantumvizGts.getTimeBounds] bounds...", bounds);
+  return bounds;
+}
+
+/***********************************************************************************
+* Tranform a gts @gts into nvd3 format
+***********************************************************************************/
+quantumvizGts.gtsToNvd3 = function(gts) {
+  var ndv3Series = {
+    key: "",
+    values: [],
+    c: "",
+    l: "",
+    id: ""
+  };
+  ndv3Series.c = gts.c;
+  ndv3Series.l = gts.l;
+  ndv3Series.id = gts.id;
+  ndv3Series.key = " " + gts.id + " - " + gts.c;
+  if (gts.l != null) {
+    ndv3Series.key += " - " + (JSON.stringify(gts.l));
+  }
+
+  if (gts.v !== undefined) {
+
+    // Sort values
+    gts.v = gts.v.sort(function(a, b) { return a[0] - b[0];});
+
+    //console.debug(gts)
+    for (var i = 0; i < gts.v.length; i++) {
+      var metric = gts.v[i];
+      ndv3Series.values.push({x: Math.round(metric[0] / 1000), y: metric[metric.length-1]});
+
+      // ndv3Series.values.push({x: new Date(metric[0]/1000), y: metric[metric.length-1]});
+    }
+  }
+  return ndv3Series;
+};
+
+
+/***********************************************************************************
+* Returns true if @data is a valid quantumviz response object
+***********************************************************************************/
+quantumvizGts.isValidResponse = function(response) {
+
+  if (!gtsTools.isArray(response) || (response.length != 1)) {
+    console.error("Response isn't an Array or it has more than 1 element: ",response);
+    return false;
+  }
+  response = response[0];
+
+  if ((response.gts === undefined) || (response.params == undefined)) {
+    console.error("Response hasn't gts and/or params components",response);
+    return false;
+  }
+
+  if (!gtsTools.isArray(response.gts) || !gtsTools.isArray(response.params)) {
+    console.error("Response's gts and/or params components aren't arrays",response);
+    return false;
+  }
+
+  if (response.gts.length != response.params.length) {
+    console.error("Response's gts and params components haven't the same length",response);
+    return false;
+  }
+
+  if ((response.annotations !== undefined) && !gtsTools.isArray(response.annotations)) {
+    console.error("Response's annotations component isn't an array");
+    return false;
+  }
+  if ((response.annotationsParams !== undefined) && !gtsTools.isArray(response.annotationsParams)) {
+    console.error("Response's annotationsParams component isn't an array");
+    return false;
+  }
+
+  return true;
+};
+
+window.quantumvizGts = quantumvizGts;
+}).call(this);
 </script>
