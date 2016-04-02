@@ -66,7 +66,7 @@
     }
 
     return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
-  
+
   }
 
 
@@ -191,15 +191,15 @@
     // make gradient for this part
     for (var i = 0; i < steps; i ++) {
       // interpolate h, s, b
-      var h = (distCW <= distCCW) ? c1.h + (distCW * i / steps) : c1.h - (distCCW * i / steps);
+      var h = (distCW <= distCCW) ? c1.h + (distCW * i / (steps-1)) : c1.h - (distCCW * i / (steps-1));
       if (h < 0) {
         h = 1 + h
       }
       if (h > 1) {
         h = h - 1
       }
-      var s = (1 - i / steps) * c1.s + i / steps * c2.s;
-      var v = (1 - i / steps) * c1.v + i / steps * c2.v;
+      var s = (1 - i / (steps-1)) * c1.s + i / (steps-1) * c2.s;
+      var v = (1 - i / (steps-1)) * c1.v + i / (steps-1) * c2.v;
       // add to gradient array
       gradient[i] = {h:h, s:s, v:v};
     }
@@ -422,22 +422,23 @@
 
     console.debug("[quantumviz-tools] validateWeightedColoredDotsPositionArray", posArray);
 
-    var step = (posArray.maxColorValue - posArray.minColorValue) / posArray.numColorSteps;
+    var step = (posArray.maxColorValue - posArray.minColorValue) / posArray.numColorSteps ;
     var steps = []
-    for (var j = 0; j < posArray.numColorSteps-1; j++) {
+    for (var j = 0; j < posArray.numColorSteps; j++) {
       steps[j] = posArray.minColorValue+ (j+1)*step;
     }
-    steps[posArray.numColorSteps-1] = posArray.maxColorValue;
-
     for (var j in posArray.positions) {
       var colorValue = posArray.positions[j][3];
-      for (var k in steps) {
-        if (colorValue < steps[k]) {
+      posArray.positions[j][5] = posArray.numColorSteps-1;
+      for (var k =0; k< steps.length; k++) {
+        if (colorValue <= steps[k]) {
           var stepAssociatedToValue = k;
           posArray.positions[j][5] = stepAssociatedToValue;
           break;
         }
       }
+
+      // console.debug("[quantumviz-tools] validateWeightedColoredDotsPositionArray", {j: j, position: posArray.positions[j], steps: steps, stepAssociatedToValue: stepAssociatedToValue})
     }
 
   }
@@ -485,8 +486,9 @@
     // console.debug("[quantumviz-tools] validateWeightedDotsPositionArray() - steps", steps)
     for (var j in posArray.positions) {
       var value = posArray.positions[j][2];
+      posArray.positions[j][4] = posArray.numSteps-1;
       for (var k in steps) {
-        if (value < steps[k]) {
+        if (value <= steps[k]) {
           var stepAssociatedToValue = k;
           posArray.positions[j][4] = stepAssociatedToValue;
           break;
