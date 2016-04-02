@@ -425,19 +425,21 @@
     var step = (posArray.maxColorValue - posArray.minColorValue) / posArray.numColorSteps ;
     var steps = []
     for (var j = 0; j < posArray.numColorSteps; j++) {
-      steps[j] = posArray.minColorValue+ (j+1)*step;
+      steps[j] = posArray.minColorValue + (j+1)*step;
     }
+
+    posArray.steps = steps;
+
     for (var j in posArray.positions) {
       var colorValue = posArray.positions[j][3];
-      posArray.positions[j][5] = posArray.numColorSteps-1;
-      for (var k =0; k< steps.length; k++) {
-        if (colorValue <= steps[k]) {
+      posArray.positions[j][5] = posArray.numColorSteps -1;
+      for (var k = 0; k< steps.length-1; k++) {
+        if (colorValue < steps[k]) {
           var stepAssociatedToValue = k;
           posArray.positions[j][5] = stepAssociatedToValue;
           break;
         }
       }
-
       // console.debug("[quantumviz-tools] validateWeightedColoredDotsPositionArray", {j: j, position: posArray.positions[j], steps: steps, stepAssociatedToValue: stepAssociatedToValue})
     }
 

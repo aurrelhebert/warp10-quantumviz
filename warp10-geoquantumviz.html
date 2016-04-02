@@ -177,6 +177,13 @@
             }
             break;
           case 'coloredWeightedDots':
+            var result = []
+            var prix = [],
+              inStep = [];
+            for (var j=0;j<positionData.numColorSteps; j++){
+              result[j] = 0;
+              inStep[j] = 0;
+            }
             for (var j=0; j<positionData.positions.length; j++ ) {
               // console.debug('[warp10-geoquantumviz] _plotPositionArray, coloredWeightedDots', { j: j, gradient: positionData.colorGradient, position: positionData.positions[j]})
               L.circleMarker(
@@ -190,7 +197,24 @@
                   fillOpacity: 1
                 }).addTo(map);
 
+              /* // Verifying algo
+              result[positionData.positions[j][5]]++
+              prix[j] = positionData.positions[j][3];
+
+              var prixInStep = positionData.steps.length-1;
+              for (var k = 0; k< positionData.steps.length-1; k++) {
+                if (prix[j] <  positionData.steps[k]) {
+                  prixInStep = k;
+                  break;
+                }
+              }
+              inStep[prixInStep]++;
             }
+            console.debug("[warp10-geoquantumviz]  color partition: ", result);
+            console.debug("[warp10-geoquantumviz]  steps: ", positionData.steps);
+            console.debug("[warp10-geoquantumviz]  prix: ", prix);
+            console.debug("[warp10-geoquantumviz]  prix in step: ", inStep);
+            */
             break;
           case 'weightedDots':
             for (var j=0; j<positionData.positions.length; j++ ) {
