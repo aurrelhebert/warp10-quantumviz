@@ -25,10 +25,18 @@ This code may only be used under the BSD style license found at http://polymer.g
     min-width: 750px;
   }
 </style>
-<script src=" ../webcomponentsjs/webcomponents.js"></script>
+<!--
+<script src=" ../webcomponentsjs/webcomponents-lite.js"></script>
 <link   rel="import" href=" ../polymer/polymer.html">
 <link   rel="import" href=" ../warp10-quantumviz/warp10-geoquantumviz.html">
 <link   rel="import" href=" ../leaflet-map/leaflet-map.html">
+-->
+
+<script src="https://warp.cityzendata.net/quantumviz/webcomponentsjs/webcomponents.js"></script>
+<link   rel="import" href=" https://warp.cityzendata.net/quantumviz/latest/polymer/polymer.html">
+<link   rel="import" href=" https://warp.cityzendata.net/quantumviz/latest/warp10-quantumviz/warp10-geoquantumviz.html">
+<link   rel="import" href=" https://warp.cityzendata.net/quantumviz/latest/leaflet-map/leaflet-map.html">
+
 
 <body  unresolved>
 
@@ -47,9 +55,9 @@ This code may only be used under the BSD style license found at http://polymer.g
   [
     {
       'positions' [
-        [ 51.10 0.52 42 00 ] [ 51.56 0.40 21  30 ] [ 51.42 0.60 84 50 ]
-        [ 51.30 -0.82 4 1 ] [ 51.76 -0.70 2  20 ] [ 51.62 -0.90 8 45 ]
-        [ 51.50 -1.52 42 25 ] [ 51.96 -1.70 61  35 ] [ 51.82 -1.90 74 15 ]
+        [ 51.10 0.50 20 00 ] [ 51.10 0.52 20 05 ] [ 51.10 0.54 20 10 ] [ 51.10 0.56 20 15 ]
+        [ 51.10 0.58 20 20 ] [ 51.10 0.60 20 25 ] [ 51.10 0.62 20 30 ] [ 51.10 0.64 20 35 ]
+        [ 51.10 0.66 20 40 ] [ 51.10 0.68 20 45 ] [ 51.10 0.70 20 50 ]
       ]
     }
   ]
@@ -59,7 +67,7 @@ This code may only be used under the BSD style license found at http://polymer.g
   [
     {
       'key' 'points' 'render' 'coloredWeightedDots'  'maxValue' 100 'minValue' 0 'baseRadius' 5 'numSteps' 10
-      'maxColorValue' 50 'minColorValue' 0 'numColorSteps' 10 'startColor' '#ff0000' 'endColor' '#00ff00'
+      'maxColorValue' 50 'minColorValue' 0 'numColorSteps' 5 'startColor' '#ff0000' 'endColor' '#00ff00'
     }
   ]
   'params' STORE
