@@ -43,6 +43,64 @@
     Polymer({
       is: "warp10-geoquantumviz",
       properties: {
+        /**
+         * The chart width, in pixels
+         */
+        width: {
+          type: Number,
+          value: -1
+        },
+        /**
+         * The chart height, in pixels
+         */
+        height: {
+          type: Number,
+          value: -1
+        },
+        /**
+         * The data of the chart
+         */
+        data: {
+          type: Object,
+          notify: true,
+          observer: "dataChanged"
+        },
+        /**
+         * The Warp 10 instance
+         */
+        host: {
+          type: String,
+          value: ""
+        },
+        /**
+        * The width of the lines on the chart
+        * It must be a number between warp10-display-chart's _MIN_LINE_WIDTH and _MAX_LINE_WIDTH
+        */
+        lineWidth: {
+          type: Number,
+          value: 2
+        },
+        /**
+         * If true, axis aren't shown
+         */
+        hideAxis: {
+          type: Boolean,
+          value: false
+        },
+        /**
+         * If true, tooltip isn't shown
+         */
+        hideTooltip: {
+          type: Boolean,
+          value: false
+        },
+        /**
+         * If true, legend isn't shown
+         */
+        hideLegend: {
+          type: Boolean,
+          value: false
+        },
           mapWidth: {
             type: Number,
             value: -1
@@ -63,22 +121,6 @@
             type: Number,
             value: 0
           },
-          host: {
-            type: String,
-            value: ""
-          },
-          showAxis: {
-            type: String,
-            value: "true"
-          },
-          tooltip: {
-            type: String,
-            value: "true"
-          },
-          lineWidth: {
-            type: Number,
-            value: 2
-          },
           reload: {
             type: Number,
             value: -1
@@ -86,11 +128,6 @@
           currentValues: {
             type: Object,
             observer: 'currentValuesChanged',
-            notify: true
-          },
-          data: {
-            type: Object,
-            observer: 'dataChanged',
             notify: true
           },
           oldPath: {

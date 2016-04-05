@@ -1,6 +1,7 @@
 <link rel="import" href=" ../polymer/polymer.html">
 <link rel="import" href="../warp10-iron/warp10-warpscript-caller.html">
-<link rel="import" href="../warp10-quantumviz/quantumviz-external-deps.html">
+
+<link rel="import" href="../warp10-quantumviz/warp10-display-chart.html">
 <link rel="import" href="../warp10-quantumviz/quantumviz-tools.html">
 <link rel="import" href="../warp10-quantumviz/quantumviz-annotations.html">
 
@@ -31,49 +32,6 @@ Viz-only version of Quantum widget
       #content {
         display: none;
       }
-      #chart {
-        display: inline-block;
-        text-align: center;
-      }
-      svg {
-        position: relative;
-        padding-left: 50px;
-        width: calc(100% - 50px) !important;
-        height: calc(100% - 100px) !important;
-        overflow:visible !important;
-      }
-      #container {
-            margin-top: 20px; margin-right: 0; margin-bottom: 50px; margin-left: 100px;
-      }
-      :host ::content .nvd3 .nv-groups path.nv-line {
-        stroke-width: var(--line-width, 2);
-      }
-      :host ::content .nvtooltip table td.key,
-      :host ::content .nvtooltip table td.value {
-        font-size: 10pt;
-      }
-      :host ::content .nvtooltip {
-        margin-left:30px;
-      }
-      :host ::content .nvtooltip table {
-        white-space: nowrap;
-      }
-      :host ::content .nvtooltip .gts-classname {
-        color: #0074D9;
-      }
-
-      :host ::content .nvtooltip .gts-labelname {
-        color: #3d9970;
-      }
-
-      :host ::content .nvtooltip .gts-separator {
-        color: #bbbbbb;
-      }
-
-      :host ::content .nvtooltip .gts-labelvalue {
-        color: #AAAAAA;
-        font-style: italic;
-      }
       #vertGuide {
         width:0px;
         height: 100%;
@@ -100,9 +58,17 @@ Viz-only version of Quantum widget
         >
       </quantumviz-annotations>
 
-      <div id="chart">
-        <svg id="svg" class="nvd3 svg" overflow="visible"></svg>
-      </div>
+      <warp10-display-chart
+        id="warp10-display-chart"
+        width={{width}}
+        height={{height}}
+        data={{data}}
+        current-value={{currentValue}}
+        line-width={{lineWidth}}
+        hide-axis={{hideAxis}}
+        hide-tooltip={{hideTooltip}}
+        hide-legend={{hideLegend}}
+        ></warp10-display-chart>
 
       <warp10-warpscript-caller
         id="warpscript-caller"
@@ -120,46 +86,74 @@ Viz-only version of Quantum widget
   Polymer({
     is: "warp10-quantumviz",
     properties: {
+      /**
+       * The chart width, in pixels
+       */
       width: {
         type: Number,
         value: -1
       },
+      /**
+       * The chart height, in pixels
+       */
       height: {
         type: Number,
         value: -1
       },
+      /**
+       * The Warp 10 instance
+       */
       host: {
         type: String,
         value: ""
       },
-      showAxis: {
-        type: String,
-        value: "true"
+      /**
+       * The data of the chart
+       */
+      data: {
+        type: Object,
+        notify: true
       },
-      tooltip: {
-        type: String,
-        value: "true"
-      },
-      legend: {
-        type: String,
-        value: "false"
-      },
-      lineWidth: {
-        type: Number,
-        value: 2
-      },
-      reload: {
-        type: Number,
-        value: -1
-      },
+      /**
+       * The values of the lines on the chart at the mouseover postion
+       */
       currentValues: {
         type: Object,
         notify: true
       },
-      data: {
-        type: Object,
-        notify: true,
-        observer: 'dataChanged'
+
+      /**
+      * The width of the lines on the chart
+      * It must be a number between warp10-display-chart's _MIN_LINE_WIDTH and _MAX_LINE_WIDTH
+      */
+      lineWidth: {
+        type: Number,
+        value: 2
+      },
+      /**
+       * If true, axis aren't shown
+       */
+      hideAxis: {
+        type: Boolean,
+        value: false
+      },
+      /**
+       * If true, tooltip isn't shown
+       */
+      hideTooltip: {
+        type: Boolean,
+        value: false
+      },
+      /**
+       * If true, legend isn't shown
+       */
+      hideLegend: {
+        type: Boolean,
+        value: false
+      },
+      reload: {
+        type: Number,
+        value: -1
       },
       content: {
         type: String,
@@ -217,36 +211,9 @@ Viz-only version of Quantum widget
       // console.debug("[warp10-quantumviz] _annotationsSelectedTimestampChanged", this.annotationsSelectedTimestamp);
     },
     configure: function() {
-      // console.debug("[test-quantumviz] configure - begin");
 
       // To make only one resize, it will be checked after receiving a response
-      this.resized = false;
-
-      // line width
-      var lineWidth = Math.floor(this.lineWidth);
-      if (lineWidth < 1 || lineWidth > 20) {
-          lineWidth = 2;
-      }
-      this.customStyle['--line-width'] = lineWidth.toString();
-      this.updateStyles();
-
-      // Dimensions
-      if (this.width <0) {
-        this.$.chart.style.width = "100%";
-        //this.$$('svg').style.width = calc(100% - 50px);
-      } else {
-        this.$.chart.style.width = (parseInt(this.width))+"px";
-        //this.$$('svg').style.width = (parseInt(this.width)-50)+"px";
-      }
-      if (this.height <0) {
-        this.$.chart.style.height = "100%";
-        //this.$$('svg').style.height = calc(100% - 100px);
-      } else {
-        this.$.chart.style.height = (parseInt(this.height))+"px";
-        //this.$$('svg').style.height = (parseInt(this.height)-100)+"px";
-      }
-      //console.log("Dimensions",this.$$('svg').getBoundingClientRect().width)      // Configure chart
-      this.configureChart();
+      //this.resized = false;
 
        // console.debug("[warp10-quantumviz] warpscriptChanged called via configure()");
       this.warpscriptChanged();
@@ -256,127 +223,7 @@ Viz-only version of Quantum widget
     getBaseUrl: function() {
       return this.host + "/exec"+this.oldPath;
     },
-    configureChart: function() {
-      // Wrapping in nv.addGraph allows for '0 timeout render', stores rendered charts in nv.graphs, and may do more in the future... it's NOT required
-      // console.debug("[test-quantumviz] configureChart - begin");
-      this.chart = nv.models.lineChart()
-        .options({
-            transitionDuration: 300
-        });
 
-
-      // console.log("Chart", Object.getOwnPropertyNames(this.chart));
-      //  Axis
-      if (this.showAxis.toLowerCase()!="true") {
-        this.chart.showXAxis(false);
-        this.chart.showYAxis(false);
-      } else {
-        this.chart.xAxis
-          .axisLabel('')
-          //.tickFormat(chartData.tickFormat);
-          .tickFormat(function(d) {return d3.time.format.utc('%Y-%m-%dT%H:%M:%SZ')(new Date(d));})
-          .showMaxMin(false)
-          .rotateLabels(-30);
-        this.chart.yAxis
-          .axisLabel('')
-          .tickFormat(d3.format(',.2f')).showMaxMin(false);;
-      }
-
-
-
-      // Tooltips
-      if (this.tooltip.toLowerCase()!="true") {
-        console.log("tooltip='false' detected");
-        this.chart.interactive(false);
-        this.chart.useInteractiveGuideline(false);
-
-      } else {
-        this.chart.useInteractiveGuideline(true);
-        this.chart.tooltip.position({"left":50});
-        // When useInteractiveGuideline is true, you need to use the tooltip on the interactiveLayer object, not in the chart one
-        // http://stackoverflow.com/questions/12416508/nvd3-piechart-js-how-to-edit-the-tooltip/32499377#32499377
-        this.chart.interactiveLayer.tooltip.contentGenerator(this.tooltipContent);
-      }
-
-      // Legend
-      if (this.legend.toLowerCase()!="true") {
-        this.chart.showLegend(false);
-      } else {
-        this.chart.showLegend(true);
-      }
-
-      // function to execute each time the graph is resized
-      nv.utils.windowResize(function(){ chart.update(); });
-
-      // console.debug("[test-quantumviz] configureChart - end");
-    },
-    _calculateMinMaxY: function(data) {
-      var y = [];
-      for (var i in data) {
-        for (var j in data[i].values) {
-          y.push(data[i].values[j].y);
-        }
-      }
-      return [ d3.min(y), d3.max(y) ]
-    },
-    addGraph: function() {
-
-      var chartData = quantumvizGts.toNvd3Graph(this.data);
-      var chart = this.chart;
-
-      if (!chartData) {
-        this.removeGraph();
-        return false;
-      }
-
-      chart.interpolate(chartData.globalParams.interpolate)
-
-
-      var minMaxY = this._calculateMinMaxY(chartData.sparklines);
-      var yDomainMin = minMaxY[0];
-      var yDomainMax = minMaxY[1];
-      var yDomainRange =  yDomainMax - yDomainMin;
-
-      // console.log("[warp10-quantumviz] addGraph - yDomainMin", yDomainMin)
-      // console.log("[warp10-quantumviz] addGraph - yDomainMax", yDomainMax)
-      // console.log("[warp10-quantumviz] addGraph - yDomainRange", yDomainRange)
-
-      chart.yDomain([ yDomainMin  - 0.1 * yDomainRange, yDomainMax + 0.1 * yDomainRange ]);
-
-      d3.select(this.$.svg)
-        .datum(chartData.sparklines)
-        .call(chart);
-
-
-      // console.debug("[warp10-quantumviz] addGraph", chart.yAxis.scale());
-
-      // this.chart.forceY([-100,100]);
-      // console.debug("[warp10-quantumviz] y domain before", chart.yAxis.scale().domain());
-
-      // chart.yAxis.scale().domain([-100,100])
-       var dataYDomain = chart.yAxis.scale().domain();
-       var dataYDomainRange = dataYDomain[1] - dataYDomain[0];
-      //chart.yDomain([ dataYDomain[0] - 0.1 * dataYDomainRange, dataYDomain[1] + 0.1 * dataYDomainRange ]);
-
-      // console.debug("[warp10-quantumviz] y domain after", chart.yAxis.scale().domain());
-
-      this.timeBounds = quantumvizGts.getTimeBounds(chartData.sparklines);
-
-      //console.debug("timeBounds", this.timeBounds);
-
-      if (this.tooltip.toLowerCase() == "true") {
-        d3.select(this).selectAll("g.nv-lineChart")
-          .on("mousemove", this.getCurrentPoint.bind(this) );
-      }
-      return chart;
-    },
-    removeGraph: function() {
-      d3.select(this.$.svg)
-        .datum([])
-        .call(this.chart);
-      var chart = this.chart;
-      chart.update();
-    },
     generateWarpScript: function() {
       // console.debug("[warp10-quantumviz] generateWarpScript - begin");
       var warpscriptScript;
@@ -395,7 +242,7 @@ Viz-only version of Quantum widget
       }
       // WarpScript
       //this.inputWarpScriptVariables = ""+this.width<0?"100%":this.width+" 'width' STORE ";
-      var inputWarpScriptVariables = ""+Math.floor(this.$$('svg').getBoundingClientRect().width)+" 'width' STORE ";
+      var inputWarpScriptVariables = ""+Math.floor(this.$$('warp10-display-chart').getBoundingClientRect().width)+" 'width' STORE ";
 
       // console.debug("[warp10-quantumviz] generateWarpScript - about to change warpscriptScript - warpscript", inputWarpScriptVariables+warpscriptScript);
 
@@ -414,14 +261,6 @@ Viz-only version of Quantum widget
        // console.debug("[warp10-quantumviz] generateWarpScript called via contentChanged()");
       this.generateWarpScript();
     },
-    dataChanged: function() {
-       // console.debug("[warp10-quantumviz] dataChanged");
-      if (this.data != null) {
-        nv.addGraph(this.addGraph());
-      } else {
-        this.removeGraph();
-      }
-    },
     vertGuideChanged: function(event) {
       if (this.vertGuide >0) {
         this.$.vertGuide.style.display = "inline-block";
@@ -430,141 +269,6 @@ Viz-only version of Quantum widget
         this.$.vertGuide.style.display = "none";
       }
     },
-    tooltipContent: function(d) {
-      if (d === null) {
-        return '';
-      }
-      var headerEnabled = true;
-      //Format function for the tooltip values column
-      var valueFormatter = function(d,i) {
-        return d;
-      };
-
-      //Format function for the tooltip header value.
-      var headerFormatter = function(d) {
-        return d3.time.format.utc('%Y-%m-%dT%H:%M:%S.%LZ')(new Date(d));
-      };
-
-      var keyFormatter = function(d, i) {
-
-        var splitted = d.split(/[{}]/);
-        var classname = splitted[0];
-        var html = "<span class='gts-classname'>"+classname+"</span>"
-        if (splitted.length > 1) {
-          html += "<span class='gts-separator'>{</span>";
-
-          var labels = []
-          splitted[1].split(',').forEach(function(it) {
-            var item = it.split('=');
-            labels.push("<span class='gts-labelname'>"+item[0]+"</span><span class='gts-separator'>=</span>"
-                  + "<span class='gts-labelvalue'>"+item[1]+"</span>");
-          })
-          html += labels.join("<span class='gts-separator'>,</span>") + "<span class='gts-separator'>}</span>";
-        }
-        return html;
-      };
-
-
-      var table = d3.select(document.createElement("table"));
-      if (headerEnabled) {
-        var theadEnter = table.selectAll("thead")
-          .data([d])
-          .enter().append("thead");
-
-        theadEnter.append("tr")
-          .append("td")
-          .attr("colspan", 3)
-          .append("strong")
-          .classed("x-value", true)
-          .html(headerFormatter(d.value));
-      }
-
-      var tbodyEnter = table.selectAll("tbody")
-          .data([d])
-          .enter().append("tbody");
-
-      var trowEnter = tbodyEnter.selectAll("tr")
-              .data(function(p) { return p.series})
-              .enter()
-              .append("tr")
-              .classed("highlight", function(p) { return p.highlight});
-
-      trowEnter.append("td")
-          .classed("legend-color-guide",true)
-          .append("div")
-          .style("background-color", function(p) { return p.color});
-
-      trowEnter.append("td")
-          .classed("key",true)
-          .html(function(p, i) {return keyFormatter(p.key, i)});
-
-      trowEnter.append("td")
-          .classed("value",true)
-          .html(function(p, i) { return valueFormatter(p.value, i) });
-
-
-      trowEnter.selectAll("td").each(function(p) {
-          if (p.highlight) {
-              var opacityScale = d3.scale.linear().domain([0,1]).range(["#fff",p.color]);
-              var opacity = 0.6;
-              d3.select(this)
-                  .style("border-bottom-color", opacityScale(opacity))
-                  .style("border-top-color", opacityScale(opacity))
-              ;
-          }
-      });
-
-      var html = table.node().outerHTML;
-      if (d.footer !== undefined)
-          html += "<div class='footer'>" + d.footer + "</div>";
-      return html;
-    },
-    getCurrentPoint: function(dataset){
-      //console.log("Data: ", dataset);
-      //console.log("Selection", Polymer.dom(this.$.svg).querySelector('.nv-lineChart'));
-      //console.log("Mouse", d3.mouse(Polymer.dom(this.$.svg).querySelector('.nv-lineChart'))[0]);
-
-      var singlePoint, pointIndex, pointXLocation, allData = [];
-      var lines = this.chart.lines;
-
-      var xScale = this.chart.xAxis.scale();
-      var yScale = this.chart.yAxis.scale();
-      var mouseCoords = d3.mouse(Polymer.dom(this.$.svg).querySelector('.nv-lineChart'));
-      var pointXValue = xScale.invert(mouseCoords[0]);
-
-      //// console.debug("[test-quantumviz] Point X value", pointXValue);
-
-      dataset
-        .filter(function(series, i) {
-          series.seriesIndex = i;
-          return !series.disabled;
-        })
-        .forEach(function(series,i) {
-          pointIndex = nv.interactiveBisect(series.values, pointXValue, lines.x());
-          lines.highlightPoint(i, pointIndex, true);
-
-          var point = series.values[pointIndex];
-
-          if (typeof point === 'undefined') return;
-          if (typeof singlePoint === 'undefined') singlePoint = point;
-          if (typeof pointXLocation === 'undefined')
-            pointXLocation = xScale(lines.x()(point,pointIndex));
-
-          allData.push({
-              key: series.key,
-              value: lines.y()(point, pointIndex),
-              color: lines.color()(series,series.seriesIndex)
-          });
-        });
-
-      var xValue = this.chart.xAxis.tickFormat()( lines.x()(singlePoint,pointIndex) );
-
-      this.currentValues = {
-        xValue: xValue,
-        yValues: allData
-      };
-      //console.log("Current value", this.currentValues);
-    }
   }
 );
 </script>
