@@ -8,6 +8,8 @@
   <template>
     <style>
       :host {
+        display: inline-block;
+        text-align: center;
       }
       #chart {
         display: inline-block;
@@ -136,22 +138,35 @@
     },
 
     // Lifecycle methods
+    created: function(){
+      console.debug("[warp10-display-chart] created");
+    },
     ready: function() {
+      console.debug("[warp10-display-chart] ready");
     },
     attached: function() {
-       // console.debug("[warp10-quantumviz] attached - calling configure()");
+      console.debug("[warp10-display-chart] attached");
       this.configure();
+      this.isAttached = true;
+      if (this.data != null) {
+        this.dataChanged()
+      }
     },
 
     // Observers
     dataChanged: function() {
-       // console.debug("[warp10-quantumviz] dataChanged");
+      if (!this.isAttached) {
+        // Component not ready yet
+        return;
+      }
+      console.debug("[warp10-display-chart] dataChanged() - ", this.data);
       if (this.data != null) {
         // nv.addGraph(this._updateGraph());
         this._updateChartData()
       } else {
         this._removeChartData();
       }
+      this.chart.update();
     },
 
     // Component methods
@@ -223,6 +238,8 @@
       } else {
         this.chart.showLegend(true);
       }
+
+      var chart = this.chart;
 
       // function to execute each time the graph is resized
       nv.utils.windowResize(function(){ chart.update(); });
@@ -393,6 +410,7 @@
     _updateChartData: function() {
 
       var chartData = quantumvizGts.toNvd3Graph(this.data);
+
       var chart = this.chart;
 
       if (!chartData) {
