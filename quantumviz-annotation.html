@@ -99,6 +99,10 @@
       this.NVD3_CHART_RIGHT_MARGIN = 20;
       this.MAX_MARKER_WIDTH = 10;
     },
+    attached: function() {
+      this.attached = true;
+      // console.debug("[quantumviz-annotation] attached()");
+    },
     setDimensions: function() {
       this.$$('.annotation').style.paddingLeft = this.SVG_MARGIN_LEFT+"px"
       // Dimensions
@@ -110,9 +114,6 @@
         this.$$('svg').definedWidth = parseInt(this.width)-this.SVG_MARGIN_LEFT-this.NVD3_CHART_RIGHT_MARGIN;
         this.$$('svg').style.width = this.$$('svg').definedWidth+"px";
       }
-    },
-    attached: function() {
-      this.attached = true;
     },
     _selectedTimestampChanged: function() {
       // console.debug("[quantumviz-annotation] _selectedTimestampChanged", this.selectedTimestamp);
