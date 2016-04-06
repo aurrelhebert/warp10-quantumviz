@@ -133,12 +133,8 @@
         notify: true
       },
       /**
-        * The date UTC format, with by default '%Y-%m-%dT%H:%M:%SZ'
+        * The date format, with by default
         */
-      dateFormat: {
-        type: String,
-        value: '%Y-%m-%dT%H:%M:%SZ'
-      }
 
       // Constants
       _MIN_LINE_WIDTH: 1,
@@ -222,7 +218,7 @@
         this.chart.xAxis
           .axisLabel('')
           //.tickFormat(chartData.tickFormat);
-          .tickFormat(function(d) {return d3.time.format.utc(this.dateFormat)(new Date(d));})
+          .tickFormat(function(d) {return d3.time.format.utc('%Y-%m-%dT%H:%M:%SZ')(new Date(d));})
           .tickPadding(10)
           .showMaxMin(false)
           .rotateLabels(-30);
@@ -440,6 +436,7 @@
 
       chart.yDomain([ yDomainMin  - 0.1 * yDomainRange, yDomainMax + 0.1 * yDomainRange ]);
 
+      chart.xAxis.tickFormat(function(d) {return d3.time.format.utc(chartData.globalParams.dateFormat)(new Date(d));})
       d3.select(this.$.svg)
         .datum(chartData.sparklines)
         .call(chart);

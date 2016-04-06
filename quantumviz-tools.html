@@ -249,14 +249,20 @@
     }
 
     var globalParams = {}
-
-    globalParams.interpolate = "step-before";
-
+    
     if (response.globalParams !== undefined) {
       if (response.globalParams.interpolate !== undefined) {
         globalParams.interpolate = response.globalParams.interpolate;
+      } else {
+        globalParams.interpolate = "linear";
+      }
+      if (response.globalParams.dateFormat !== undefined) {
+        globalParams.dateFormat = response.globalParams.dateFormat;
+      } else {
+        globalParams.dateFormat = '%Y-%m-%dT%H:%M:%SZ';
       }
     }
+
 
     chartData.sparklines = sparklines;
     chartData.globalParams = globalParams;
