@@ -30,6 +30,7 @@
   /***********************************************************************************
   * Constants
   ***********************************************************************************/
+  quantumvizGts.BASE_RADIUS = 10;
   quantumvizGts.MIN_TS = 0;
   quantumvizGts.MAX_TS = Math.pow(2, 53) - 1;
   quantumvizGts.palette = [
@@ -305,6 +306,34 @@
     return annotations;
   };
 
+
+  quantumvizGts.extractCommonParameters = function(obj, params, index) {
+
+    if (params.key !== undefined) {
+      obj.key = params.key;
+    }
+
+    if (params.color !== undefined) {
+      obj.color = params.color;
+    } else {
+      obj.color = quantumvizGts.getColor(index);
+    }
+
+    if (params.borderColor !== undefined) {
+      obj.borderColor = params.borderColor;
+    } else {
+      obj.borderColor = "#000";
+    }
+
+    if (params.baseRadius === undefined || isNaN(parseInt(params.baseRadius)) || parseInt(params.baseRadius) < 0 ) {
+      obj.baseRadius = quantumvizGts.BASE_RADIUS;
+    } else {
+      obj.baseRadius = params.baseRadius;
+    }
+
+  }
+
+
   /**
   * Transforms quantumviz response object into leaflet-map position array
   */
@@ -321,44 +350,28 @@
 
     for (var i=0; i< response.gts.length; i++) {
 
-      console.debug("[quantumviz-tools] toLeafletMapPositionArray - response.gts[i]", response.gts[i])
+      // console.debug("[quantumviz-tools] toLeafletMapPositionArray - response.gts[i]", response.gts[i])
       if (gtsTools.isPositionArray(response.gts[i])) {
 
-        var posArray = {};
-        posArray = response.gts[i];
+        var posArray = response.gts[i];
+        var params = response.params[i];
 
+        quantumvizGts.extractCommonParameters(posArray, params, i);
 
-        if (response.params[i].key !== undefined) {
-          posArray.key = response.params[i].key;
-        } else if (posArray.key === undefined ){
-          posArray.key = "circle";
-        }
-
-        if (response.params[i].render !== undefined) {
-          posArray.render = response.params[i].render;
+        if (params.render !== undefined) {
+          posArray.render = params.render;
         }
 
         if (posArray.render == 'weightedDots') {
-          quantumvizGts.validateWeightedDotsPositionArray(posArray, response.params[i]);
+          quantumvizGts.validateWeightedDotsPositionArray(posArray, params);
         }
 
         if (posArray.render == 'coloredWeightedDots') {
-          quantumvizGts.validateWeightedColoredDotsPositionArray(posArray, response.params[i]);
+          quantumvizGts.validateWeightedColoredDotsPositionArray(posArray, params);
         }
 
-        if (response.params[i].color !== undefined) {
-          posArray.color = response.params[i].color;
-        } else {
-          posArray.color = quantumvizGts.getColor(i);
-        }
 
-        if (response.params[i].borderColor !== undefined) {
-          posArray.borderColor = response.params[i].borderColor;
-        } else {
-          posArray.borderColor = "#000";
-        }
-
-        console.debug("[quantumviz-tools] toLeafletMapPositionArray - posArray", posArray)
+        // console.debug("[quantumviz-tools] toLeafletMapPositionArray - posArray", posArray)
         positions.push(posArray);
       }
     }
@@ -366,11 +379,9 @@
   }
 
   quantumvizGts.validateWeightedColoredDotsPositionArray = function (posArray, params) {
-    console.debug("[quantumviz-tools] validateWeightedColoredDotsPositionArray - Begin");
     if (!quantumvizGts.validateWeightedDotsPositionArray(posArray, params)) {
       return;
     }
-      console.debug("[quantumviz-tools] validateWeightedColoredDotsPositionArray - Next");
 
     if (params.minColorValue === undefined || params.maxColorValue === undefined || params.startColor === undefined || params.endColor === undefined) {
       console.error("[quantumviz-tools] validateWeightedColoredDotsPositionArray() - When using 'weightedColoredDots' rendering, 'maxColorValue', 'minColorValue', 'startColor' and 'endColor' parameters are compulsory");
@@ -420,7 +431,7 @@
 
     posArray.colorGradient = quantumvizGts.hsvGradientFromRgbColors(posArray.startColor, posArray.endColor,  posArray.numColorSteps);
 
-    console.debug("[quantumviz-tools] validateWeightedColoredDotsPositionArray", posArray);
+    // console.debug("[quantumviz-tools] validateWeightedColoredDotsPositionArray", posArray);
 
     var step = (posArray.maxColorValue - posArray.minColorValue) / posArray.numColorSteps ;
     var steps = []
@@ -468,11 +479,6 @@
       return;
     }
 
-    if (params.baseRadius === undefined || isNaN(parseInt(params.baseRadius)) || parseInt(params.baseRadius) < 0 ) {
-      posArray.baseRadius = 10;
-    } else {
-      posArray.baseRadius = params.baseRadius;
-    }
     if (params.numSteps === undefined || isNaN(parseInt(params.numSteps)) || parseInt(params.numSteps) < 0 ) {
       posArray.numSteps = 5;
     } else {
@@ -516,40 +522,28 @@
     for (var i=0; i< response.gts.length; i++) {
       if (gtsTools.isGtsToAnnotate(response.gts[i])) {
         var annotation = {};
+        var params = response.params[i];
 
         annotation.path = gtsTools.gtsToPath(response.gts[i]);
 
-        if (response.params[i].key !== undefined) {
-          annotation.key = response.params[i].key;
-        }
+        quantumvizGts.extractCommonParameters(annotation, params, i);
 
-        if (response.params[i].render !== undefined) {
-          annotation.render = response.params[i].render;
+        if (params.render !== undefined) {
+          annotation.render = params.render;
         }
 
         if (annotation.render == 'marker') {
 
-          if (response.params[i].marker) {
-            annotation.marker = response.params[i].marker ;
+          if (params.marker) {
+            annotation.marker = params.marker ;
           } else {
             annotation.marker = "circle";
           }
         }
         if (annotation.render == 'weightedDots') {
-          quantumvizGts.validateWeightedDotsPositionArray(annotation, response.params[i]);
+          quantumvizGts.validateWeightedDotsPositionArray(annotation, params);
         }
 
-        if (response.params[i].color !== undefined) {
-          annotation.color = response.params[i].color;
-        } else {
-          annotation.color = quantumvizGts.getColor(i);
-        }
-
-        if (response.params[i].borderColor !== undefined) {
-          annotation.borderColor = response.params[i].borderColor;
-        } else {
-          annotation.borderColor = "#000";
-        }
 
         annotations.push(annotation);
       }

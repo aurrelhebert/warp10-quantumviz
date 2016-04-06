@@ -202,7 +202,7 @@
         return warpscript += this.content;
       },
       _plotPositionArray: function(positionData, map) {
-        console.debug('[warp10-geoquantumviz] _plotPositionArray - item', positionData);
+        // console.debug('[warp10-geoquantumviz] _plotPositionArray - item', positionData);
         switch (positionData.render) {
           case 'path':
             L.polyline(positionData.positions, {color: positionData.color, opacity: 1} ).addTo(map);
@@ -234,24 +234,6 @@
                   fillOpacity: 1
                 }).addTo(map);
             }
-              /* // Verifying algo
-              result[positionData.positions[j][5]]++
-              prix[j] = positionData.positions[j][3];
-
-              var prixInStep = positionData.steps.length-1;
-              for (var k = 0; k< positionData.steps.length-1; k++) {
-                if (prix[j] <  positionData.steps[k]) {
-                  prixInStep = k;
-                  break;
-                }
-              }
-              inStep[prixInStep]++;
-            }
-            console.debug("[warp10-geoquantumviz]  color partition: ", result);
-            console.debug("[warp10-geoquantumviz]  steps: ", positionData.steps);
-            console.debug("[warp10-geoquantumviz]  prix: ", prix);
-            console.debug("[warp10-geoquantumviz]  prix in step: ", inStep);
-            */
             break;
           case 'weightedDots':
             for (var j=0; j<positionData.positions.length; j++ ) {
@@ -268,7 +250,7 @@
             for (var j=0; j<positionData.positions.length; j++ ) {
               L.circleMarker(
                 positionData.positions[j],{
-                  radius: 10,
+                  radius: positionData.baseRadius,
                   color: positionData.borderColor,
                   fillColor: positionData.color,
                   fillOpacity: 1
