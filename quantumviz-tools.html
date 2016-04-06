@@ -235,7 +235,7 @@
         if (response.params[i].interpolate !== undefined) {
           sl.interpolate = response.params[i].interpolate;
         } else {
-          sl.interpolate = "step-before";
+          sl.interpolate = "linear";
         }
         sparklines.push(sl);
       }

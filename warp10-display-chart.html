@@ -139,13 +139,13 @@
 
     // Lifecycle methods
     created: function(){
-      console.debug("[warp10-display-chart] created");
+      // console.debug("[warp10-display-chart] created");
     },
     ready: function() {
-      console.debug("[warp10-display-chart] ready");
+      // console.debug("[warp10-display-chart] ready");
     },
     attached: function() {
-      console.debug("[warp10-display-chart] attached");
+      // console.debug("[warp10-display-chart] attached");
       this.configure();
       this.isAttached = true;
       if (this.data != null) {
@@ -159,7 +159,7 @@
         // Component not ready yet
         return;
       }
-      console.debug("[warp10-display-chart] dataChanged() - ", this.data);
+      // console.debug("[warp10-display-chart] dataChanged() - ", this.data);
       if (this.data != null) {
         // nv.addGraph(this._updateGraph());
         this._updateChartData()
@@ -215,6 +215,7 @@
           .axisLabel('')
           //.tickFormat(chartData.tickFormat);
           .tickFormat(function(d) {return d3.time.format.utc('%Y-%m-%dT%H:%M:%SZ')(new Date(d));})
+          .tickPadding(10)
           .showMaxMin(false)
           .rotateLabels(-30);
         this.chart.yAxis
@@ -413,26 +414,30 @@
 
       var chartData = quantumvizGts.toNvd3Graph(this.data);
 
-      var chart = this.chart;
 
       if (!chartData) {
         this._removeGraph();
         return false;
       }
 
-      chart.interpolate(chartData.globalParams.interpolate)
+      var chart = this.chart;
+
+      // chart.interpolate(chartData.globalParams.interpolate)
+
 
       var minMaxY = this._calculateMinMaxY(chartData.sparklines);
       var yDomainMin = minMaxY[0];
       var yDomainMax = minMaxY[1];
       var yDomainRange =  yDomainMax - yDomainMin;
 
-
       chart.yDomain([ yDomainMin  - 0.1 * yDomainRange, yDomainMax + 0.1 * yDomainRange ]);
 
       d3.select(this.$.svg)
         .datum(chartData.sparklines)
         .call(chart);
+
+
+      // console.debug("[warp10-display-chart] interpolate - getting lines", chart.lines._options.interpolate)
 
       this.timeBounds = quantumvizGts.getTimeBounds(chartData.sparklines);
 
