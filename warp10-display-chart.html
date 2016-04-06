@@ -121,7 +121,7 @@
       /**
        * If true, legend isn't shown
        */
-      hideLegend: {
+      showLegend: {
         type: Boolean,
         value: false
       },
@@ -233,10 +233,10 @@
       }
 
       // Legend
-      if (this.hideLegend) {
-        this.chart.showLegend(false);
-      } else {
+      if (this.showLegend) {
         this.chart.showLegend(true);
+      } else {
+        this.chart.showLegend(false);
       }
 
       var chart = this.chart;

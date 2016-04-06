@@ -81,6 +81,13 @@
           value: 2
         },
         /**
+         * The values of the lines on the chart at the mouseover postion
+         */
+        currentValues: {
+          type: Object,
+          notify: true
+        },
+        /**
          * If true, axis aren't shown
          */
         hideAxis: {
@@ -95,59 +102,59 @@
           value: false
         },
         /**
-         * If true, legend isn't shown
+         * If true, legend is shown
          */
-        hideLegend: {
+        showLegend: {
           type: Boolean,
           value: false
         },
-          mapWidth: {
-            type: Number,
-            value: -1
-          },
-          mapHeight: {
-            type: Number,
-            value: -1
-          },
-          mapZoom: {
-            type: Number,
-            value: 0
-          },
-          mapLon: {
-            type: Number,
-            value: 0
-          },
-          mapLat: {
-            type: Number,
-            value: 0
-          },
-          reload: {
-            type: Number,
-            value: -1
-          },
-          currentValues: {
-            type: Object,
-            observer: 'currentValuesChanged',
-            notify: true
-          },
-          oldPath: {
-            type: String,
-            value: ""
-          },
-          _mapSpinnerSize: {
-            type: Number,
-            computed: "_getMapSpinnerSize(mapHeight)"
-          },
-          _warpScript: {
-            type: String,
-            computed: "_getWarpScript(content)"
-          },
-          annotationsSelectedTimestamp: {
-            type: Number,
-            notify: true,
-            observer: "_annotationsSelectedTimestampChanged",
-            value: -1
-          }
+        mapWidth: {
+          type: Number,
+          value: -1
+        },
+        mapHeight: {
+          type: Number,
+          value: -1
+        },
+        mapZoom: {
+          type: Number,
+          value: 0
+        },
+        mapLon: {
+          type: Number,
+          value: 0
+        },
+        mapLat: {
+          type: Number,
+          value: 0
+        },
+        reload: {
+          type: Number,
+          value: -1
+        },
+        currentValues: {
+          type: Object,
+          observer: 'currentValuesChanged',
+          notify: true
+        },
+        oldPath: {
+          type: String,
+          value: ""
+        },
+        _mapSpinnerSize: {
+          type: Number,
+          computed: "_getMapSpinnerSize(mapHeight)"
+        },
+        _warpScript: {
+          type: String,
+          computed: "_getWarpScript(content)"
+        },
+        annotationsSelectedTimestamp: {
+          type: Number,
+          notify: true,
+          observer: "_annotationsSelectedTimestampChanged",
+          value: -1
+        }
       },
       created: function(){
         this.polylinesBeforeCurrentValue = [];
