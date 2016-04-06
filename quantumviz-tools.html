@@ -234,6 +234,8 @@
         sl.area = false;
         if (response.params[i].interpolate !== undefined) {
           sl.interpolate = response.params[i].interpolate;
+        } else if (response.globalParams.interpolate !== undefined){
+          sl.interpolate = response.globalParams.interpolate;
         } else {
           sl.interpolate = "linear";
         }
