@@ -152,3 +152,38 @@ Available parameters are:
      6 ->MAP
    </warp10-quantumviz>
 
+
+## Launching Quantumviz from a local server
+
+In order to follow this instructions, you need to have a recent version of [NodeJS](https://nodejs.org) on your computer.
+
+You also need to have Bower and Polyserve programs installed:
+
+```
+npm install -g bower polyserve
+```
+
+
+**Instructions**
+
+1.  Checkout Quantumviz project from https://github.com/cityzendata/warp10-quantumviz
+
+1. From your local Quantumviz project root, install the dependencies
+
+  ```
+  bower install
+  ```
+
+1. From your local Quantumviz project root, launch Polyserve on the `PORT` you want to use:
+
+  ```
+  polyserve -p PORT
+  ```
+
+1. Components are then available on `localhost:PORT/components/COMPONENT_NAME/COMPONENT.html`
+
+  Examples (on port 8000):
+
+  http://localhost:8000/components/webcomponentsjs/webcomponents.js
+  http://localhost:8000/components/polymer/polymer.html
+  http://localhost:8000/components/warp10-quantumviz/warp10-display-chart.html
