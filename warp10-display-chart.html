@@ -203,6 +203,8 @@
             transitionDuration: 300
         });
 
+      this.chart.xScale(d3.time.scale()); // use a time scale instead of plain numbers in order to get nice round default values in the axis
+
 
       //  Axis
       if (this.hideAxis) {
