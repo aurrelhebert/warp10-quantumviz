@@ -45,7 +45,7 @@ Viz-only version of Quantum widget
     </style>
     <div class="widget">
 
-      <spinner-widget active={{loading}} hover size="200" ></spinner-widget>
+      <spinner-widget id="spinner" active={{loading}} hover size="50" line-width="10px" container-height="{{height}}"></spinner-widget>
 
       <div id="vertGuide"></div>
 
@@ -212,8 +212,12 @@ Viz-only version of Quantum widget
     },
     configure: function() {
 
-      // To make only one resize, it will be checked after receiving a response
-      //this.resized = false;
+      // Dimensions
+      if (this.width <0) {
+        this.$$(".widget").style.width = "100%";
+      } else {
+        this.$$(".widget").style.width = (parseInt(this.width))+"px";
+      }
 
        // console.debug("[warp10-quantumviz] warpscriptChanged called via configure()");
       this.warpscriptChanged();
