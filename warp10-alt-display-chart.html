@@ -1,0 +1,372 @@
+<link rel="import" href=" ../polymer/polymer.html">
+<link rel="import" href="../warp10-quantumviz/quantumviz-external-deps.html">
+<link rel="import" href="../warp10-quantumviz/quantumviz-tools.html">
+
+
+<script src="../dygraphs/dygraph-combined-dev.js"></script>
+<script type="text/javascript" src="../dygraphs/extras/smooth-plotter.js"></script>
+
+<dom-module name="warp10-display-chart" >
+  <template>
+    <style>
+      :host {
+        display: block;
+        text-align: center;
+      }
+      #chart {
+        display: inline-block;
+        text-align: center;
+      }
+      .tooltip {
+          position: absolute;
+          min-width: 200px;
+          height: auto;
+          padding: 10px;
+          background-color: rgba(255, 255, 255, 0.75);
+          border-radius: 10px;
+          box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+          pointer-events: none;
+          z-index: 1000;
+      }
+      .tooltip.hidden {
+          display: none;
+      }
+      .tooltip table {
+        white-space: nowrap;
+      }
+      .gts-classname {
+        color: #0074D9;
+      }
+      .gts-labelname {
+        color: #3d9970;
+      }
+      .gts-separator {
+        color: #bbbbbb;
+      }
+      .gts-labelvalue {
+        color: #AAAAAA;
+        font-style: italic;
+      }
+    </style>
+
+    <div id="chart">
+      <div class="tooltips hidden"></div>
+    </div>
+
+
+
+  </template>
+</dom-module>
+
+
+<script>
+  // element registration
+  Polymer({
+    is: "warp10-display-chart",
+    // Properties
+    properties: {
+      /**
+       * The chart width, in pixels
+       */
+      width: {
+        type: Number,
+        value: -1
+      },
+      /**
+       * The chart height, in pixels
+       */
+      height: {
+        type: Number,
+        value: -1
+      },
+      /**
+       * The data of the chart
+       */
+      data: {
+        type: Object,
+        notify: true,
+        observer: 'dataChanged'
+      },
+      /**
+       * The values of the lines at the mouseover postion
+       */
+      currentValues: {
+        type: Object,
+        notify: true
+      },
+      /**
+       * The width of the lines on the chart
+       * It must be a number between _MIN_LINE_WIDTH and _MAX_LINE_WIDTH
+       */
+      lineWidth: {
+        type: Number,
+        value: 2
+      },
+      /**
+       * If true, axis aren't shown
+       */
+      hideAxis: {
+        type: Boolean,
+        value: false
+      },
+      /**
+       * If true, tooltip isn't shown
+       */
+      hideTooltip: {
+        type: Boolean,
+        value: false
+      },
+      /**
+       * If true, legend isn't shown
+       */
+      showLegend: {
+        type: Boolean,
+        value: false
+      },
+      /**
+       * Displayed data time bounds
+       */
+      timeBounds: {
+        type: Object,
+        notify: true
+      },
+      /**
+        * The chart area
+        */
+      chartArea: {
+        type: Array,
+        notify: true
+      },
+
+      // Constants
+      _MIN_LINE_WIDTH: 1,
+      _MAX_LINE_WIDTH: 20
+    },
+
+    // Lifecycle methods
+    created: function(){
+      // console.debug("[warp10-display-chart] created");
+    },
+    ready: function() {
+      // console.debug("[warp10-display-chart] ready");
+    },
+    attached: function() {
+      // console.debug("[warp10-display-chart] attached");
+      this.configure();
+      this.isAttached = true;
+      if (this.data != null) {
+        this.dataChanged()
+      }
+    },
+
+    // Observers
+    dataChanged: function() {
+      if (!this.isAttached) {
+        // Component not ready yet
+        return;
+      }
+      console.debug("[warp10-display-chart] dataChanged() - ", this.data);
+      if (this.data != null) {
+        this._updateChartData();
+      } else {
+        this._removeChartData();
+      }
+    },
+
+    // Component methods
+    configure: function() {
+      console.debug("[warp10-display-chart] configure");
+
+      // Dimensions
+      if (this.width <0) {
+        this.$.chart.style.width = "100%";
+        //this.$$('svg').style.width = calc(100% - 50px);
+      } else {
+        this.$.chart.style.width = (parseInt(this.width))+"px";
+        //this.$$('svg').style.width = (parseInt(this.width)-50)+"px";
+      }
+      if (this.height <0) {
+        this.$.chart.style.height = "100%";
+        //this.$$('svg').style.height = calc(100% - 100px);
+      } else {
+        this.$.chart.style.height = (parseInt(this.height))+"px";
+        //this.$$('svg').style.height = (parseInt(this.height)-100)+"px";
+      }
+
+      // Line width
+      var lineWidth = Math.floor(this.lineWidth);
+      if (lineWidth < this._MIN_LINE_WIDTH || this._MAX_LINE_WIDTH > 20) {
+          lineWidth = 2;
+      }
+
+    },
+
+    _removeChartData: function() {
+
+    },
+
+    _updateChartData: function() {
+      this._data2dygraphs(this.data);
+    },
+    _tooltipContent: function(obj) {
+
+
+    },
+    _gts2dygraphs: function(gtsList) {
+      var sparklines = [];
+
+      for (var i=0; i< gtsList.length; i++) {
+        var values = gtsList[i].v.sort(function(a, b) { return a[0] - b[0];}); // We begin by sorting the values
+        // console.debug("[warp10-display-chart] _gts2dygraphs - sorted values", values);
+        for (var j=0; j<values.length; j++) {
+          var ts = Math.round(values[j][0]/1000);
+          var found = false;
+          for (var k=0; k<sparklines.length; k++) {
+            if (ts < sparklines[k][0]) {
+              var record = [];  // Every record is [ts, y_series0, y_series1...]
+              record.push(ts);
+              for (var ii=0; ii< gtsList.length; ii++) {
+                  if (i == ii) {
+                    record.push(values[j][values[j].length-1]);
+                  } else {
+                    record.push(NaN);
+                  }
+              }
+              sparklines.splice(k,0, record)
+              found = true;
+              // console.debug("[warp10-display-chart] _gts2dygraphs - ts < sparklines[k][0] ", sparklines[k] );
+              break;
+            } else if (ts == sparklines[k][0]){
+              sparklines[k][i+1] = values[j][values[j].length-1];
+              found = true;
+              // console.debug("[warp10-display-chart] _gts2dygraphs - ts == sparklines[k][0] ", sparklines[k] );
+              break;
+            }
+          }
+          if (!found) {
+            var record = [];  // Every record is [ts, y_series0, y_series1...]
+            record.push(ts);
+            for (var ii=0; ii< gtsList.length; ii++) {
+                if (i == ii) {
+                  record.push(values[j][values[j].length-1]);
+                } else{
+                  record.push(NaN);
+                }
+            }
+            sparklines.push(record);
+            // console.debug("[warp10-display-chart] _gts2dygraphs - ts > sparklines[k][0] ", sparklines[sparklines.length-1] );
+          }
+        }
+      }
+      for(var i in sparklines) {
+        sparklines[i][0] = new Date(sparklines[i][0]);
+      }
+      // console.debug("[warp10-display-chart] _gts2dygraphs - sparklines", sparklines);
+      return sparklines;
+    },
+    _data2dygraphs: function(data) {
+
+      var context = this;
+
+      if (!quantumvizGts.isValidResponse(data)) {
+        console.error("[warp10-display-chart] Received invalid data", data);
+        return;
+      }
+
+      var response = {};
+      if (quantumvizGts.isValidGtsListResponse(data)) {
+        response.gts = data[0];
+        response.params = Array.apply(null, Array(data[0].length));
+        response.globalParams = {};
+      } else {
+        response = data[0];
+      }
+
+      var filteredResponse = {
+        gts:[],
+        params:[],
+        globalParams:response.globalParams
+      };
+      for (var i=0; i<response.gts.length;i++){
+        if (gtsTools.isGtsToPlot(response.gts[i])) {
+          filteredResponse.gts.push(response.gts[i]);
+          filteredResponse.params.push(response.params[i]);
+        }
+      }
+
+      var sparklines = this._gts2dygraphs(filteredResponse.gts);
+
+      var labels = []; labels[0] = "Timestamp";
+      var colors = [];
+      var interpolate = [];
+      var strokeWidth = [];
+      for (var i=0; i< filteredResponse.params.length; i++) {
+        if (filteredResponse.params[i].key !== undefined) {
+          labels[i+1] = filteredResponse.params[i].key;
+        } else {
+          labels[i+1] = gtsTools.serializeGtsMetadata(filteredResponse.gts[i]);
+        }
+        if (filteredResponse.params[i].color !== undefined) {
+          colors[i] = filteredResponse.params[i].color;
+        } else {
+          colors[i] = quantumvizGts.getColor(i);
+        }
+
+        if (filteredResponse.params[i].interpolate !== undefined) {
+          interpolate[i] = filteredResponse.params[i].interpolate;
+        } else if (filteredResponse.globalParams.interpolate !== undefined){
+          interpolate[i] = filteredResponse.globalParams.interpolate;
+        } else {
+          interpolate[i] = "linear";
+        }
+
+        if (filteredResponse.params[i].strokeWidth !== undefined) {
+          strokeWidth[i] = filteredResponse.params[i].strokeWidth;
+        } else if (response.globalParams.lineWidth !== undefined){
+          strokeWidth[i] = filteredResponse.globalParams.strokeWidth;
+        } else {
+          strokeWidth[i] = 2;
+        }
+      }
+
+      var options = {
+        file: sparklines,
+        labels: labels,
+        colors: colors,
+        legend: "never",
+        drawCallback: function(me, initial) {
+          context.chartArea = me.getArea();
+          context.timeBounds = {
+            min: me.xAxisRange()[0],
+            max: me.xAxisRange()[1]
+          }
+        },
+        highlightCallback: function(event, x, points) {
+          console.debug("[warp10-display-chart] highlightCallback", {event:event, x:x,points:points, xCoord: context.chart.toDomXCoord(x)});
+          context.currentValues = {
+            xValue: x,
+            yValues: points,
+            xCoord: context.chart.toDomXCoord(x)
+          };
+        }
+      }
+
+      for (var i=1; i<labels.length; i++) {   // i==0 is the X axis
+        options[labels[i]] = {
+          strokeWidth:strokeWidth[i-1],
+          plotter: smoothPlotter
+          //stepPlot : true
+        }
+      }
+
+      if (this.chart) {
+        this.chart.updateOptions(options);
+      } else {
+        // console.debug("[warp10-display-chart] _data2dygraphs - options",options);
+        this.chart = new Dygraph(this.$.chart, sparklines, options);
+      }
+    },
+  }
+
+);
+</script>
