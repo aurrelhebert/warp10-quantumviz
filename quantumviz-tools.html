@@ -216,7 +216,14 @@
       return false;
     }
 
-    var response = data[0];
+    var response = {};
+    if (quantumvizGts.isValidGtsListResponse(data)) {
+      response.gts = data[0];
+      response.params = Array.apply(null, Array(data[0].length));
+      response.globalParams = {};
+    } else {
+      response = data[0];
+    }
 
     var chartData = {}
 
@@ -249,7 +256,7 @@
     }
 
     var globalParams = {}
-    
+
     if (response.globalParams !== undefined) {
       if (response.globalParams.interpolate !== undefined) {
         globalParams.interpolate = response.globalParams.interpolate;
@@ -705,11 +712,35 @@
     return ndv3Series;
   };
 
-
   /***********************************************************************************
   * Returns true if @data is a valid quantumviz response object
   ***********************************************************************************/
   quantumvizGts.isValidResponse = function(response) {
+    if (quantumvizGts.isValidDetailedResponse(response)) {
+      return true;
+    }
+    if (quantumvizGts.isValidGtsListResponse(response)) {
+      return true;
+    }
+    return false;
+
+  }
+
+  /***********************************************************************************
+  * Returns true if @data is a valid GTS list response object
+  ***********************************************************************************/
+  quantumvizGts.isValidGtsListResponse = function(response) {
+    if (!gtsTools.isArray(response) || (response.length != 1)) {
+      console.error("Response isn't an Array or it has more than 1 element: ",response);
+      return false;
+    }
+    response = response[0];
+    return   gtsTools.isGts(response);
+  }
+  /***********************************************************************************
+  * Returns true if @data is a valid detailed quantumviz response object
+  ***********************************************************************************/
+  quantumvizGts.isValidDetailedResponse = function(response) {
 
     if (!gtsTools.isArray(response) || (response.length != 1)) {
       console.error("Response isn't an Array or it has more than 1 element: ",response);
@@ -729,15 +760,6 @@
 
     if (response.gts.length != response.params.length) {
       console.error("Response's gts and params components haven't the same length",response);
-      return false;
-    }
-
-    if ((response.annotations !== undefined) && !gtsTools.isArray(response.annotations)) {
-      console.error("Response's annotations component isn't an array");
-      return false;
-    }
-    if ((response.annotationsParams !== undefined) && !gtsTools.isArray(response.annotationsParams)) {
-      console.error("Response's annotationsParams component isn't an array");
       return false;
     }
 

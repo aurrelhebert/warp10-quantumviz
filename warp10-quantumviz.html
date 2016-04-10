@@ -1,7 +1,7 @@
 <link rel="import" href=" ../polymer/polymer.html">
 <link rel="import" href="../warp10-iron/warp10-warpscript-caller.html">
 
-<link rel="import" href="../warp10-quantumviz/warp10-display-chart.html">
+<link rel="import" href="../warp10-quantumviz/warp10-alt-display-chart.html">
 <link rel="import" href="../warp10-quantumviz/quantumviz-tools.html">
 <link rel="import" href="../warp10-quantumviz/quantumviz-annotations.html">
 
@@ -51,6 +51,7 @@ Viz-only version of Quantum widget
 
       <quantumviz-annotations
         time-bounds={{timeBounds}}
+        chart-area={{chartArea}}
         data={{data}}
         vert-guide={{vertGuide}}
         width="{{width}}"
@@ -69,6 +70,7 @@ Viz-only version of Quantum widget
         hide-tooltip={{hideTooltip}}
         show-legend={{showLegend}}
         time-bounds={{timeBounds}}
+        chart-area={{chartArea}}
         ></warp10-display-chart>
 
       <warp10-warpscript-caller
@@ -203,6 +205,7 @@ Viz-only version of Quantum widget
     },
     attached: function() {
        // console.debug("[warp10-quantumviz] attached - calling configure()");
+      this.isAttached = true;
       this.configure();
       this.call = 1;
       //
@@ -247,7 +250,6 @@ Viz-only version of Quantum widget
       // WarpScript
       //this.inputWarpScriptVariables = ""+this.width<0?"100%":this.width+" 'width' STORE ";
       var inputWarpScriptVariables = ""+Math.floor(this.$$('warp10-display-chart').getBoundingClientRect().width)+" 'width' STORE ";
-
       // console.debug("[warp10-quantumviz] generateWarpScript - about to change warpscriptScript - warpscript", inputWarpScriptVariables+warpscriptScript);
 
       this.warpscriptScript = inputWarpScriptVariables+warpscriptScript;
@@ -258,10 +260,16 @@ Viz-only version of Quantum widget
       return false;
     },
     warpscriptChanged: function() {
+      if (!this.isAttached) {
+        return;
+      }
        // console.debug("[warp10-quantumviz] generateWarpScript called via warpscriptChanged()");
       this.generateWarpScript();
     },
     contentChanged: function() {
+      if (!this.isAttached) {
+        return;
+      }
        // console.debug("[warp10-quantumviz] generateWarpScript called via contentChanged()");
       this.generateWarpScript();
     },
@@ -273,6 +281,7 @@ Viz-only version of Quantum widget
         this.$.vertGuide.style.display = "none";
       }
     },
+
   }
 );
 </script>
