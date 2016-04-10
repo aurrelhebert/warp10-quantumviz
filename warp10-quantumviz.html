@@ -71,7 +71,6 @@ Viz-only version of Quantum widget
         show-legend={{showLegend}}
         time-bounds={{timeBounds}}
         chart-area={{chartArea}}
-        tooltip={{tooltip}}
         ></warp10-display-chart>
 
       <warp10-warpscript-caller
@@ -200,10 +199,6 @@ Viz-only version of Quantum widget
         notify: true,
         observer: "_annotationsSelectedTimestampChanged",
         value: -1
-      },
-      tooltip: {
-        type: String,
-        observer: "tooltipChanged"
       }
     },
     ready: function() {
@@ -263,9 +258,6 @@ Viz-only version of Quantum widget
         return true;
       }
       return false;
-    },
-    tooltipChanged: function() {
-      console.debug("[warp10-quantumviz] tooltipChanged", this.tooltip);
     },
     warpscriptChanged: function() {
       if (!this.isAttached) {

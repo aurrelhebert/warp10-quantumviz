@@ -27,6 +27,9 @@
           box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
           pointer-events: none;
           z-index: 1000;
+          font-family: sans-serif;
+          font-size: 10pt;
+          line-height: 20px;
       }
       .tooltip.hidden {
           display: none;
@@ -34,18 +37,25 @@
       .tooltip table {
         white-space: nowrap;
       }
-      .gts-classname {
+      :host ::content .gts-classname {
         color: #0074D9;
       }
-      .gts-labelname {
+      :host ::content .gts-labelname {
         color: #3d9970;
       }
-      .gts-separator {
+      :host ::content .gts-separator {
         color: #bbbbbb;
       }
-      .gts-labelvalue {
+      :host ::content .gts-labelvalue {
         color: #AAAAAA;
         font-style: italic;
+      }
+      :host ::content .tooltip .key {
+        text-align: left;
+        padding-right: 10px;
+      }
+      :host ::content .tooltip .value {
+        text-align: right;
       }
     </style>
 
@@ -146,7 +156,8 @@
       tooltip: {
         type: String,
         observer: "tooltipChanged",
-        notify: true
+        notify: true,
+        value: ""
       },      // Constants
       _MIN_LINE_WIDTH: 1,
       _MAX_LINE_WIDTH: 20
@@ -184,14 +195,14 @@
     currentValuesChanged: function() {
       if (this.isAttached != null) {
         // console.debug("[warp10-display-chart] currentValuesChanged() - currentValues", this.currentValues);
-        this.tooltip = this._tooltipContent();
+        this._tooltipContent();
       }
     },
-    tooltipChanged: function() {
+    tooltipChanged: function(oldValue, newValue) {
+      console.debug("[warp10-display-chart] tooltipChanged - oldValue", oldValue);
+      console.debug("[warp10-display-chart] tooltipChanged - newValue", newValue);
       if (this.tooltip == "") {
-          this.$$(".tooltip").style.hidden = true;
       } else {
-        this.$$(".tooltip").style.hidden = false;
         this.$$(".tooltip").innerHTML = this.tooltip;
       }
     },
@@ -225,13 +236,13 @@
     },
 
     _isTooltipHidden(tooltip) {
-        if (this.tooltip == "") {
-          return "hidden";
-        } else {
-          return "";
-        }
+      console.debug("[warp10-display-chart] _isTooltipHidden", this.tooltip);
+      if (this.tooltip == "") {
+        return "hidden";
+      } else {
+        return "";
+      }
     },
-
     _removeChartData: function() {
 
     },
@@ -241,15 +252,16 @@
     },
     _tooltipContent: function() {
 
+      console.debug("[warp10-display-chart] _tooltipContent", this.currentValues)
       var d = this.currentValues;
 
       if (d === null) {
-        return '';
+        this.tooltip = "";
       }
       var headerEnabled = true;
       //Format function for the tooltip values column
       var valueFormatter = function(d,i) {
-        return d;
+        return "<span class='gts-value'>"+d+"</span>";
       };
 
       //Format function for the tooltip header value.
@@ -293,48 +305,50 @@
       }
 
       var tbodyEnter = table.selectAll("tbody")
-          .data([d])
-          .enter().append("tbody");
-
+        .data([d])
+        .enter().append("tbody");
 
       var trowEnter = tbodyEnter.selectAll("tr")
-              .data(d.yValues)
-              .enter()
-              .append("tr")
-              .classed("highlight", function(p) { return p.highlight});
-
-
-      trowEnter.append("td")
-          .classed("legend-color-guide",true)
-          .append("div")
-          .style("background-color", function(p) { return p.color });
+        .data(d.yValues)
+        .enter()
+        .append("tr")
+        .classed("highlight", function(p) { return p.highlight});
 
       trowEnter.append("td")
-          .classed("key",true)
-          .html(function(p, i) { return keyFormatter(p.name, i) });
+        .classed("legend-color-guide",true)
+        .append("div")
+        .style("background-color", function(p) { return p.color });
 
       trowEnter.append("td")
-          .classed("value",true)
-          .html(function(p, i) { return valueFormatter(p.yval, i) });
+        .classed("key",true)
+        .html(function(p, i) { return keyFormatter(p.name, i) });
+
+      trowEnter.append("td")
+        .classed("value",true)
+        .html(function(p, i) { return valueFormatter(p.yval, i) });
 
 
       trowEnter.selectAll("td").each(function(p) {
-          if (p.highlight) {
-              var opacityScale = d3.scale.linear().domain([0,1]).range(["#fff",p.color]);
-              var opacity = 0.6;
-              d3.select(this)
-                  .style("border-bottom-color", opacityScale(opacity))
-                  .style("border-top-color", opacityScale(opacity))
-              ;
-          }
+        if (p.highlight) {
+          var opacityScale = d3.scale.linear().domain([0,1]).range(["#fff",p.color]);
+          var opacity = 0.6;
+          d3.select(this)
+            .style("border-bottom-color", opacityScale(opacity))
+            .style("border-top-color", opacityScale(opacity))
+        }
       });
 
       var html = table.node().outerHTML;
       if (d.footer !== undefined)
           html += "<div class='footer'>" + d.footer + "</div>";
 
-      // console.debug("[warp10-display-chart] _tooltipContent", html);
-      return html;
+      console.debug("[warp10-display-chart] _tooltipContent", this.$$(".tooltip"));
+
+      // CSS left position
+      this.$$(".tooltip").style.left = (this.currentValues.xCoord + 20)+"px";
+      //console.debug("[warp10-display-chart] _tooltipContent", this.currentValues);
+
+      this.tooltip = html;
 
 
     },
@@ -466,6 +480,7 @@
             min: me.xAxisRange()[0],
             max: me.xAxisRange()[1]
           }
+          console.debug("[warp10-display-chart] drawCallback called", context.timeBounds)
         },
         highlightCallback: function(event, x, points) {
           // console.debug("[warp10-display-chart] highlightCallback", {event:event, x:x,points:points, xCoord: context.chart.toDomXCoord(x)});

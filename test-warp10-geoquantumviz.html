@@ -139,20 +139,7 @@ This code may only be used under the BSD style license found at http://polymer.g
 </warp10-geoquantumviz>
 
     <template is="dom-if" if="{{current}}">
-        <div class="current-value">
-          <b>Current values:
-        <br/>
-          x: <span>{{current.xValue}}</span>
-        <br/>
-          <ul>
-          <template is="dom-repeat" items="{{current.yValues}}">
-            <li>
-              key: <span>{{item.key}}</span>
-              value: <span>{{item.value}}</span>
-            </li>
-          </template>
-          </ul>
-        </div>
+    
     </template>
   </div>
 </template>
