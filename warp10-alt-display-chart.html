@@ -49,8 +49,9 @@
       }
     </style>
 
+
+    <div class$="tooltip {{_isTooltipHidden(tooltip)}}"></div>
     <div id="chart">
-      <div class="tooltips hidden"></div>
     </div>
 
 
@@ -139,7 +140,14 @@
         notify: true
       },
 
-      // Constants
+      /**
+        * The tooltip
+        */
+      tooltip: {
+        type: String,
+        observer: "tooltipChanged",
+        notify: true
+      },      // Constants
       _MIN_LINE_WIDTH: 1,
       _MAX_LINE_WIDTH: 20
     },
@@ -176,7 +184,15 @@
     currentValuesChanged: function() {
       if (this.isAttached != null) {
         // console.debug("[warp10-display-chart] currentValuesChanged() - currentValues", this.currentValues);
-        this._tooltipContent();
+        this.tooltip = this._tooltipContent();
+      }
+    },
+    tooltipChanged: function() {
+      if (this.tooltip == "") {
+          this.$$(".tooltip").style.hidden = true;
+      } else {
+        this.$$(".tooltip").style.hidden = false;
+        this.$$(".tooltip").innerHTML = this.tooltip;
       }
     },
 
@@ -206,6 +222,14 @@
           lineWidth = 2;
       }
 
+    },
+
+    _isTooltipHidden(tooltip) {
+        if (this.tooltip == "") {
+          return "hidden";
+        } else {
+          return "";
+        }
     },
 
     _removeChartData: function() {
@@ -309,7 +333,7 @@
       if (d.footer !== undefined)
           html += "<div class='footer'>" + d.footer + "</div>";
 
-      console.debug("[warp10-display-chart] _tooltipContent", html);
+      // console.debug("[warp10-display-chart] _tooltipContent", html);
       return html;
 
 
