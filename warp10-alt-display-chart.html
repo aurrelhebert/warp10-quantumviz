@@ -92,7 +92,8 @@
        */
       currentValues: {
         type: Object,
-        notify: true
+        notify: true,
+        observer: "currentValuesChanged"
       },
       /**
        * The width of the lines on the chart
@@ -172,6 +173,12 @@
         this._removeChartData();
       }
     },
+    currentValuesChanged: function() {
+      if (this.isAttached != null) {
+        // console.debug("[warp10-display-chart] currentValuesChanged() - currentValues", this.currentValues);
+        this._tooltipContent();
+      }
+    },
 
     // Component methods
     configure: function() {
@@ -208,7 +215,102 @@
     _updateChartData: function() {
       this._data2dygraphs(this.data);
     },
-    _tooltipContent: function(obj) {
+    _tooltipContent: function() {
+
+      var d = this.currentValues;
+
+      if (d === null) {
+        return '';
+      }
+      var headerEnabled = true;
+      //Format function for the tooltip values column
+      var valueFormatter = function(d,i) {
+        return d;
+      };
+
+      //Format function for the tooltip header value.
+      var headerFormatter = function(d) {
+        return d3.time.format.utc('%Y-%m-%dT%H:%M:%S.%LZ')(new Date(d));
+      };
+
+      var keyFormatter = function(d, i) {
+
+        var splitted = d.split(/[{}]/);
+        var classname = splitted[0];
+        var html = "<span class='gts-classname'>"+classname+"</span>"
+        if (splitted.length > 1) {
+          html += "<span class='gts-separator'>{</span>";
+
+          var labels = []
+          splitted[1].split(',').forEach(function(it) {
+            var item = it.split('=');
+            labels.push("<span class='gts-labelname'>"+item[0]+"</span><span class='gts-separator'>=</span>"
+                  + "<span class='gts-labelvalue'>"+item[1]+"</span>");
+          })
+          html += labels.join("<span class='gts-separator'>,</span>") + "<span class='gts-separator'>}</span>";
+        }
+        return html;
+      };
+
+
+      var table = d3.select(document.createElement("table"));
+      if (headerEnabled) {
+        var theadEnter = table.selectAll("thead")
+          .data([d])
+          .enter().append("thead");
+
+        theadEnter.append("tr")
+          .append("td")
+          .attr("colspan", 3)
+          .append("strong")
+          .classed("x-value", true)
+          .html(headerFormatter(d.xValue));
+
+      }
+
+      var tbodyEnter = table.selectAll("tbody")
+          .data([d])
+          .enter().append("tbody");
+
+
+      var trowEnter = tbodyEnter.selectAll("tr")
+              .data(d.yValues)
+              .enter()
+              .append("tr")
+              .classed("highlight", function(p) { return p.highlight});
+
+
+      trowEnter.append("td")
+          .classed("legend-color-guide",true)
+          .append("div")
+          .style("background-color", function(p) { return p.color });
+
+      trowEnter.append("td")
+          .classed("key",true)
+          .html(function(p, i) { return keyFormatter(p.name, i) });
+
+      trowEnter.append("td")
+          .classed("value",true)
+          .html(function(p, i) { return valueFormatter(p.yval, i) });
+
+
+      trowEnter.selectAll("td").each(function(p) {
+          if (p.highlight) {
+              var opacityScale = d3.scale.linear().domain([0,1]).range(["#fff",p.color]);
+              var opacity = 0.6;
+              d3.select(this)
+                  .style("border-bottom-color", opacityScale(opacity))
+                  .style("border-top-color", opacityScale(opacity))
+              ;
+          }
+      });
+
+      var html = table.node().outerHTML;
+      if (d.footer !== undefined)
+          html += "<div class='footer'>" + d.footer + "</div>";
+
+      console.debug("[warp10-display-chart] _tooltipContent", html);
+      return html;
 
 
     },
@@ -342,12 +444,22 @@
           }
         },
         highlightCallback: function(event, x, points) {
-          console.debug("[warp10-display-chart] highlightCallback", {event:event, x:x,points:points, xCoord: context.chart.toDomXCoord(x)});
+          // console.debug("[warp10-display-chart] highlightCallback", {event:event, x:x,points:points, xCoord: context.chart.toDomXCoord(x)});
+
+          for (var i=0; i<points.length; i++) {
+            // console.debug("[warp10-display-chart] color",  context.chart.colors_[i]);
+            points[i].color = context.chart.colors_[i];
+          }
+          // console.debug("[warp10-display-chart] highlightCallback", points);
           context.currentValues = {
             xValue: x,
             yValues: points,
             xCoord: context.chart.toDomXCoord(x)
           };
+        },
+        unhighlightCallback: function(event) {
+          // console.debug("[warp10-display-chart] unhighlightCallback");
+          context.currentValues = null;
         }
       }
 
