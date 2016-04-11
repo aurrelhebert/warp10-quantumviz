@@ -197,18 +197,21 @@
       }
     },
     currentValuesChanged: function() {
-      if (this.isAttached != null) {
+      if (null != this.isAttached) {
         console.debug("[warp10-display-chart] currentValuesChanged() - currentValues", this.currentValues);
         this._tooltipContent();
       }
     },
     tooltipChanged: function(oldValue, newValue) {
-      console.debug("[warp10-display-chart] tooltipChanged - oldValue", oldValue);
-      console.debug("[warp10-display-chart] tooltipChanged - newValue", newValue);
-      if (this.tooltip == "") {
+      // console.debug("[warp10-display-chart] tooltipChanged - oldValue", oldValue);
+      // console.debug("[warp10-display-chart] tooltipChanged - newValue", newValue);
+
+      if (null == this.tooltip || "" == this.tooltip) {
+        // this.$$(".tooltip").innerHTML = this.tooltip;
       } else {
         this.$$(".tooltip").innerHTML = this.tooltip;
       }
+
     },
 
     // Component methods
@@ -240,10 +243,12 @@
     },
 
     _isTooltipHidden(tooltip) {
-      console.debug("[warp10-display-chart] _isTooltipHidden", this.tooltip);
-      if (this.tooltip == "") {
+
+      if (null == this.tooltip || "" == this.tooltip) {
+          console.debug("[warp10-display-chart] _isTooltipHidden - true");
         return "hidden";
       } else {
+          console.debug("[warp10-display-chart] _isTooltipHidden - false");
         return "";
       }
     },
@@ -260,7 +265,8 @@
       var d = this.currentValues;
 
       if (d === null) {
-        this.tooltip = "";
+        this.tooltip = null;
+        return;
       }
       var headerEnabled = true;
       //Format function for the tooltip values column
@@ -346,11 +352,80 @@
       if (d.footer !== undefined)
           html += "<div class='footer'>" + d.footer + "</div>";
 
-      console.debug("[warp10-display-chart] _tooltipContent", this.$$(".tooltip"));
+      console.debug("[warp10-display-chart] _tooltipContent", this.$$(".tooltip").getBoundingClientRect());
 
       // CSS left position
-      this.$$(".tooltip").style.left = (this.currentValues.xCoord + 20)+"px";
-      //console.debug("[warp10-display-chart] _tooltipContent", this.currentValues);
+
+
+
+      // Left, right or centerer
+      if (this.currentValues.xCoord + this.$$(".tooltip").getBoundingClientRect().width +20 > window.innerWidth  ) {
+          if (this.currentValues.xCoord - this.$$(".tooltip").getBoundingClientRect().width - 20 < 0  ) {
+            // Tooltip centered
+            this.$$(".tooltip").style.left = (this.currentValues.xCoord - this.$.chart.getBoundingClientRect().width/2)+"px";
+            this.$$(".tooltip").style.right = "auto";
+            this.$$(".tooltip").style.top = (this.currentValues.yCoord + 50)+"px";
+
+
+            var deb = {
+              innerWidth : window.innerWidth ,
+              tooltip: this.$$(".tooltip").getBoundingClientRect().width,
+              xCoord: this.currentValues.xCoord,
+              yCoord: this.currentValues.yCoord,
+              sum: this.currentValues.xCoord + this.$$(".tooltip").getBoundingClientRect().width +20,
+              left: this.$$(".tooltip").style.left,
+              right: this.$$(".tooltip").style.right,
+              top:   this.$$(".tooltip").style.top
+            }
+
+            console.debug("[warp10-display-chart] _tooltipContent - tooltip to center", deb);
+
+          } else {
+            // Tooltip to the left
+
+            this.$$(".tooltip").style.left = "auto";
+            this.$$(".tooltip").style.right = (this.$.chart.getBoundingClientRect().width - this.currentValues.xCoord + 20)+"px";
+            this.$$(".tooltip").style.top = (this.currentValues.yCoord - 50)+"px";
+
+
+            var deb = {
+              innerWidth : window.innerWidth ,
+              tooltip: this.$$(".tooltip").getBoundingClientRect().width,
+              xCoord: this.currentValues.xCoord,
+              yCoord: this.currentValues.yCoord,
+              sum: this.currentValues.xCoord + this.$$(".tooltip").getBoundingClientRect().width +20,
+              left: this.$$(".tooltip").style.left,
+              right: this.$$(".tooltip").style.right,
+              top:   this.$$(".tooltip").style.top
+            }
+
+            console.debug("[warp10-display-chart] _tooltipContent - tooltip to the left", deb);
+          }
+      } else {
+        // Tooltip to the right
+        this.$$(".tooltip").style.right = "auto";
+        this.$$(".tooltip").style.left = (this.currentValues.xCoord +20)+"px";
+        this.$$(".tooltip").style.top =  (this.currentValues.yCoord - 50)+"px";
+
+        var deb = {
+          innerWidth : window.innerWidth ,
+          tooltip: this.$$(".tooltip").getBoundingClientRect().width,
+          xCoord: this.currentValues.xCoord,
+          yCoord: this.currentValues.yCoord,
+          sum: this.currentValues.xCoord + this.$$(".tooltip").getBoundingClientRect().width +20,
+          left: this.$$(".tooltip").style.left,
+          right: this.$$(".tooltip").style.right,
+          top:   this.$$(".tooltip").style.top
+        }
+
+        console.debug("[warp10-display-chart] _tooltipContent - tooltip to the right", deb);
+
+      }
+
+
+
+
+
 
       this.tooltip = html;
 
@@ -497,11 +572,12 @@
             // console.debug("[warp10-display-chart] color",  context.chart.colors_[i]);
             points[i].color = context.chart.colors_[i];
           }
-          // console.debug("[warp10-display-chart] highlightCallback", points);
+          console.debug("[warp10-display-chart] highlightCallback - event", event);
           context.currentValues = {
             xValue: x,
             yValues: points,
-            xCoord: context.chart.toDomXCoord(x)
+            xCoord: context.chart.toDomXCoord(x),
+            yCoord: event.layerY
           };
         },
         unhighlightCallback: function(event) {
