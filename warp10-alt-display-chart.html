@@ -19,7 +19,8 @@
       }
       .tooltip {
           position: absolute;
-          min-width: 200px;
+          min-width: 400px;
+          max-width: 100%;
           height: auto;
           padding: 10px;
           background-color: rgba(255, 255, 255, 0.75);
@@ -28,7 +29,7 @@
           pointer-events: none;
           z-index: 1000;
           font-family: sans-serif;
-          font-size: 10pt;
+          font-size: 9pt;
           line-height: 20px;
       }
       .tooltip.hidden {
@@ -53,6 +54,9 @@
       :host ::content .tooltip .key {
         text-align: left;
         padding-right: 10px;
+        word-wrap: break-word;
+        word-break: break-word;
+        min-width: 300px;
       }
       :host ::content .tooltip .value {
         text-align: right;
@@ -194,7 +198,7 @@
     },
     currentValuesChanged: function() {
       if (this.isAttached != null) {
-        // console.debug("[warp10-display-chart] currentValuesChanged() - currentValues", this.currentValues);
+        console.debug("[warp10-display-chart] currentValuesChanged() - currentValues", this.currentValues);
         this._tooltipContent();
       }
     },
@@ -261,7 +265,7 @@
       var headerEnabled = true;
       //Format function for the tooltip values column
       var valueFormatter = function(d,i) {
-        return "<span class='gts-value'>"+d+"</span>";
+        return "<span class='gts-value'>"+d.toFixed(4)+"</span>";
       };
 
       //Format function for the tooltip header value.
@@ -441,9 +445,13 @@
       var interpolate = [];
       var strokeWidth = [];
       for (var i=0; i< filteredResponse.params.length; i++) {
+
+        // console.debug("[warp10-display-chart]  filteredResponse.gts", filteredResponse.gts[i]);
+        // console.debug("[warp10-display-chart]  filteredResponse.params", filteredResponse.params[i]);
         if (filteredResponse.params[i].key !== undefined) {
           labels[i+1] = filteredResponse.params[i].key;
         } else {
+          console.debug("[warp10-display-chart]  key", filteredResponse.gts[i]);
           labels[i+1] = gtsTools.serializeGtsMetadata(filteredResponse.gts[i]);
         }
         if (filteredResponse.params[i].color !== undefined) {
