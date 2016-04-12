@@ -600,8 +600,19 @@
       for (var i=1; i<labels.length; i++) {   // i==0 is the X axis
         options.series[labels[i]] = {
           strokeWidth:strokeWidth[i-1],
-          plotter: smoothPlotter
           //stepPlot : true
+        }
+        switch (interpolate[i-1]) {
+          case "cardinal" :
+            options.series[labels[i]].plotter = smoothPlotter
+            break;
+          case "step-after":
+          case "step-before":
+            options.series[labels[i]].stepPlot = true
+            break;
+          case "linear":
+          default:
+            break;
         }
       }
 

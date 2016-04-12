@@ -63,12 +63,17 @@ This code may only be used under the BSD style license found at http://polymer.g
       2 ->LIST
       'gts' STORE
 
-      'color' '#ff1010'
-      'key' 'Temperature A'
-      4 ->MAP
-      'color' '#1010ff'
-      'key' 'Temperature B'
-      4 ->MAP
+      {
+        'color' '#ff1010'
+        'key' 'Temperature A'
+        'interpolate' 'step-before'
+      }
+
+      {
+        'color' '#1010ff'
+        'key' 'Temperature B'
+      }
+
       2 ->LIST
       'params' STORE
 
