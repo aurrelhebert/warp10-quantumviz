@@ -23,7 +23,7 @@
           max-width: 100%;
           height: auto;
           padding: 10px;
-          background-color: rgba(255, 255, 255, 0.75);
+          background-color: rgba(255, 255, 255, 0.85);
           border-radius: 10px;
           box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
           pointer-events: none;
@@ -37,6 +37,17 @@
       :host ::content table {
         white-space: normal;
         font-size: 10pt !important;
+      }
+      :host ::content .legend-color-guide {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      :host ::content .legend-color-guide div {
+        width: 10px;
+        height: 10px;
+        border-radius: 5px;
+        margin-right: 5px;
       }
       :host ::content .gts-classname {
         color: #0074D9;
@@ -585,9 +596,9 @@
           context.currentValues = null;
         }
       }
-
+      options.series = {}
       for (var i=1; i<labels.length; i++) {   // i==0 is the X axis
-        options[labels[i]] = {
+        options.series[labels[i]] = {
           strokeWidth:strokeWidth[i-1],
           plotter: smoothPlotter
           //stepPlot : true
