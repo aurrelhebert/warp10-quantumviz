@@ -49,6 +49,9 @@
         border-radius: 5px;
         margin-right: 5px;
       }
+      :host ::content tr.highlight {
+        background-color: #ffffa4;
+      }
       :host ::content .gts-classname {
         color: #0074D9;
       }
@@ -279,10 +282,11 @@
         this.tooltip = null;
         return;
       }
+
       var headerEnabled = true;
       //Format function for the tooltip values column
       var valueFormatter = function(d,i) {
-        return "<span class='gts-value'>"+d.toFixed(4)+"</span>";
+        return "<span class='gts-value'>"+ (+d.toFixed(4))+"</span>";
       };
 
       //Format function for the tooltip header value.
@@ -333,7 +337,10 @@
         .data(d.yValues)
         .enter()
         .append("tr")
-        .classed("highlight", function(p) { return p.highlight});
+        .classed("highlight", function(p) {
+          console.debug("[warp10-display-chart] hightlight", p);
+          return p.highlight
+        });
 
       trowEnter.append("td")
         .classed("legend-color-guide",true)
@@ -363,7 +370,7 @@
       if (d.footer !== undefined)
           html += "<div class='footer'>" + d.footer + "</div>";
 
-      console.debug("[warp10-display-chart] _tooltipContent", this.$$(".tooltip").getBoundingClientRect());
+      console.debug("[warp10-display-chart] _tooltipContent", html);
 
       // CSS left position
 
@@ -568,22 +575,34 @@
         labels: labels,
         colors: colors,
         legend: "never",
+        highlightCircleSize: 4,
+        highlightSeriesOpts: {
+          strokeWidth: 3,
+          strokeBorderWidth: 1,
+          highlightCircleSize: 6
+        },
         drawCallback: function(me, initial) {
           context.chartArea = me.getArea();
           context.timeBounds = {
             min: me.xAxisRange()[0],
             max: me.xAxisRange()[1]
           }
-          console.debug("[warp10-display-chart] drawCallback called", context.timeBounds)
+          // console.debug("[warp10-display-chart] drawCallback called", context.timeBounds)
         },
-        highlightCallback: function(event, x, points) {
-          // console.debug("[warp10-display-chart] highlightCallback", {event:event, x:x,points:points, xCoord: context.chart.toDomXCoord(x)});
+        highlightCallback: function(event, x, points, row, name) {
+          console.debug("[warp10-display-chart] highlightCallback", {event:event, name:name, x:x,points:points, row:row, xCoord: context.chart.toDomXCoord(x)});
 
           for (var i=0; i<points.length; i++) {
             // console.debug("[warp10-display-chart] color",  context.chart.colors_[i]);
             points[i].color = context.chart.colors_[i];
+            if (name == points[i].name) {
+              points[i].highlight = true;
+            } else {
+              points[i].highlight = false;
+            }
           }
-          console.debug("[warp10-display-chart] highlightCallback - event", event);
+          console.debug("[warp10-display-chart] highlightCallback - points", points);
+
           context.currentValues = {
             xValue: x,
             yValues: points,

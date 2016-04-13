@@ -632,12 +632,12 @@
     var boundsArray = [];
     for (var i=0; i< paths.length; i++) {
       for (var j=0; j<paths[i].path.length; j++) {
-        boundsArray.push([paths[i].path[j].lat,paths[i].path[j].lon])
+        boundsArray.push([parseFloat(paths[i].path[j].lat),paths[i].path[j].lon])
       }
     }
     for (var i=0; i< positionsData.length; i++) {
       for (var j=0; j<positionsData[i].positions.length; j++) {
-        boundsArray.push(positionsData[i].positions[j])
+        boundsArray.push([positionsData[i].positions[j][0],positionsData[i].positions[j][1]])
       }
     }
     return boundsArray;
