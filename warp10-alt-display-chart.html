@@ -203,7 +203,7 @@
         // Component not ready yet
         return;
       }
-      console.debug("[warp10-display-chart] dataChanged() - ", this.data);
+      // console.debug("[warp10-display-chart] dataChanged() - ", this.data);
       if (this.data != null) {
         this._updateChartData();
       } else {
@@ -212,7 +212,7 @@
     },
     currentValuesChanged: function() {
       if (null != this.isAttached) {
-        console.debug("[warp10-display-chart] currentValuesChanged() - currentValues", this.currentValues);
+        // console.debug("[warp10-display-chart] currentValuesChanged() - currentValues", this.currentValues);
         this._tooltipContent();
       }
     },
@@ -230,7 +230,7 @@
 
     // Component methods
     configure: function() {
-      console.debug("[warp10-display-chart] configure");
+      // console.debug("[warp10-display-chart] configure");
 
       // Dimensions
       if (this.width <0) {
@@ -259,10 +259,10 @@
     _isTooltipHidden(tooltip) {
 
       if (null == this.tooltip || "" == this.tooltip) {
-          console.debug("[warp10-display-chart] _isTooltipHidden - true");
+          // console.debug("[warp10-display-chart] _isTooltipHidden - true");
         return "hidden";
       } else {
-          console.debug("[warp10-display-chart] _isTooltipHidden - false");
+          // console.debug("[warp10-display-chart] _isTooltipHidden - false");
         return "";
       }
     },
@@ -275,7 +275,7 @@
     },
     _tooltipContent: function() {
 
-      console.debug("[warp10-display-chart] _tooltipContent", this.currentValues)
+      // console.debug("[warp10-display-chart] _tooltipContent", this.currentValues)
       var d = this.currentValues;
 
       if (d === null) {
@@ -338,7 +338,7 @@
         .enter()
         .append("tr")
         .classed("highlight", function(p) {
-          console.debug("[warp10-display-chart] hightlight", p);
+          // console.debug("[warp10-display-chart] hightlight", p);
           return p.highlight
         });
 
@@ -370,7 +370,7 @@
       if (d.footer !== undefined)
           html += "<div class='footer'>" + d.footer + "</div>";
 
-      console.debug("[warp10-display-chart] _tooltipContent", html);
+      // console.debug("[warp10-display-chart] _tooltipContent", html);
 
       // CSS left position
 
@@ -396,7 +396,7 @@
               top:   this.$$(".tooltip").style.top
             }
 
-            console.debug("[warp10-display-chart] _tooltipContent - tooltip to center", deb);
+            // console.debug("[warp10-display-chart] _tooltipContent - tooltip to center", deb);
 
           } else {
             // Tooltip to the left
@@ -417,7 +417,7 @@
               top:   this.$$(".tooltip").style.top
             }
 
-            console.debug("[warp10-display-chart] _tooltipContent - tooltip to the left", deb);
+            // console.debug("[warp10-display-chart] _tooltipContent - tooltip to the left", deb);
           }
       } else {
         // Tooltip to the right
@@ -436,7 +436,7 @@
           top:   this.$$(".tooltip").style.top
         }
 
-        console.debug("[warp10-display-chart] _tooltipContent - tooltip to the right", deb);
+        // console.debug("[warp10-display-chart] _tooltipContent - tooltip to the right", deb);
 
       }
 
@@ -506,7 +506,7 @@
       var context = this;
 
       if (!quantumvizGts.isValidResponse(data)) {
-        console.error("[warp10-display-chart] Received invalid data", data);
+        // console.error("[warp10-display-chart] Received invalid data", data);
         return;
       }
 
@@ -544,7 +544,7 @@
         if (filteredResponse.params[i].key !== undefined) {
           labels[i+1] = filteredResponse.params[i].key;
         } else {
-          console.debug("[warp10-display-chart]  key", filteredResponse.gts[i]);
+          // console.debug("[warp10-display-chart]  key", filteredResponse.gts[i]);
           labels[i+1] = gtsTools.serializeGtsMetadata(filteredResponse.gts[i]);
         }
         if (filteredResponse.params[i].color !== undefined) {
@@ -575,6 +575,7 @@
         labels: labels,
         colors: colors,
         legend: "never",
+        gridLineColor: 'rgb(196, 196, 196)',
         highlightCircleSize: 4,
         highlightSeriesOpts: {
           strokeWidth: 3,
@@ -590,7 +591,7 @@
           // console.debug("[warp10-display-chart] drawCallback called", context.timeBounds)
         },
         highlightCallback: function(event, x, points, row, name) {
-          console.debug("[warp10-display-chart] highlightCallback", {event:event, name:name, x:x,points:points, row:row, xCoord: context.chart.toDomXCoord(x)});
+          // console.debug("[warp10-display-chart] highlightCallback", {event:event, name:name, x:x,points:points, row:row, xCoord: context.chart.toDomXCoord(x)});
 
           for (var i=0; i<points.length; i++) {
             // console.debug("[warp10-display-chart] color",  context.chart.colors_[i]);
@@ -601,7 +602,7 @@
               points[i].highlight = false;
             }
           }
-          console.debug("[warp10-display-chart] highlightCallback - points", points);
+          // console.debug("[warp10-display-chart] highlightCallback - points", points);
 
           context.currentValues = {
             xValue: x,
