@@ -1,7 +1,6 @@
 <link rel="import" href=" ../polymer/polymer.html">
 <link rel="import" href="../warp10-quantumviz/quantumviz-external-deps.html">
-<link rel="import" href="../warp10-quantumviz/quantumviz-tools.html">
-
+<link rel="import" href="../warp10-quantumviz/warp10-display-map-tools.html">
 
 <dom-module name="warp10-display-map" >
   <template>
@@ -23,6 +22,10 @@
 
 
 <script>
+
+
+
+
   // element registration
   Polymer({
     is: "warp10-display-map",
@@ -154,9 +157,11 @@
       }
     },
     _currentValuesChanged: function() {
+      if (!this.currentValues) return;
+
       var map = this.$.map.map
       // All works on seconds only now...
-      //console.log("Current time "+ this.currentValues.xValue + " - "+ new Date(this.currentValues.xValue) + " - " + (new Date(this.currentValues.xValue)).getTime() )
+      // console.log("Current time "+ this.currentValues.xValue + " - "+ new Date(this.currentValues.xValue) + " - " + (new Date(this.currentValues.xValue)).getTime() )
       var currentTS = Math.floor( (new Date(this.currentValues.xValue)).getTime() / 1000 );
 
       for (var i=0; i< this.pathData.length; i++) {
@@ -164,8 +169,8 @@
           //console.log("Do they match? "+currentTS+ " - "+this.pathData[i].path[j].ts)
           if (currentTS <= Math.floor( this.pathData[i].path[j].ts / 1000 )) {
             this.currentValuesMarkers[i].setLatLng([this.pathData[i].path[j].lat, this.pathData[i].path[j].lon]);
-            this.polylinesBeforeCurrentValue[i].setLatLngs(quantumvizGts.pathDataToLeaflet(this.pathData[i].path, {to:j}));
-            this.polylinesAfterCurrentValue[i].setLatLngs(quantumvizGts.pathDataToLeaflet(this.pathData[i].path, {from:j}));
+            this.polylinesBeforeCurrentValue[i].setLatLngs(warp10DisplayMapTools.pathDataToLeaflet(this.pathData[i].path, {to:j}));
+            this.polylinesAfterCurrentValue[i].setLatLngs(warp10DisplayMapTools.pathDataToLeaflet(this.pathData[i].path, {from:j}));
             break;
           }
         }
@@ -208,9 +213,9 @@
 
     // Private methods
     _updateMapData: function() {
-      this.pathData = quantumvizGts.toLeafletMapPaths(this.data);
-      this.annotationsData = quantumvizGts.annotationsToLeafletPositions(this.data);
-      this.positionData = quantumvizGts.toLeafletMapPositionArray(this.data);
+      this.pathData = warp10DisplayMapTools.toLeafletMapPaths(this.data);
+      this.annotationsData = warp10DisplayMapTools.annotationsToLeafletPositions(this.data);
+      this.positionData = warp10DisplayMapTools.toLeafletMapPositionArray(this.data);
       // console.debug("[warp10-display-map] Data changed - path data", this.pathData);
       // console.debug("[warp10-display-map] Data changed - position arrays", this.positionData);
 
@@ -244,25 +249,23 @@
 
 
       if (this.pathData.length>0 || this.positionData.length>0 ) {
-        // console.debug("[warp10-display-map] getBoundsArray", quantumvizGts.getBoundsArray(this.pathData,this.positionData))
+        // console.debug("[warp10-display-map] getBoundsArray", warp10DisplayMapTools.getBoundsArray(this.pathData,this.positionData))
         // Fit map to curves
-        map.fitBounds(quantumvizGts.getBoundsArray(this.pathData,this.positionData), {padding: [20,20]});
+        map.fitBounds(warp10DisplayMapTools.getBoundsArray(this.pathData,this.positionData), {padding: [20,20]});
       }
       // console.debug("[warp10-display-map] Fit bounds done");
-
-
     },
 
     _updateGtsPath: function(gts, map) {
       var beforeCurrentValue =
         L.polyline(
-          quantumvizGts.pathDataToLeaflet(gts.path, {to:0}), {
+          warp10DisplayMapTools.pathDataToLeaflet(gts.path, {to:0}), {
             color: gts.color,
             opacity: 1
           }
         ).addTo(map);
       var afterCurrentValue = L.polyline(
-        quantumvizGts.pathDataToLeaflet(gts.path, {from:0}), {
+        warp10DisplayMapTools.pathDataToLeaflet(gts.path, {from:0}), {
           color: gts.color,
           opacity: 0.5
         }
@@ -345,7 +348,7 @@
               positionData.positions[j],{
                 radius: positionData.baseRadius*(parseInt(positionData.positions[j][4])+1),
                 color:  positionData.borderColor,
-                fillColor: quantumvizGts.rgb2hex(
+                fillColor: warp10ColorTools.rgb2hex(
                   positionData.colorGradient[positionData.positions[j][5]].r,
                   positionData.colorGradient[positionData.positions[j][5]].g,
                   positionData.colorGradient[positionData.positions[j][5]].b),
