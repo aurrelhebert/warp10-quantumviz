@@ -1,6 +1,7 @@
 <link rel="import" href=" ../polymer/polymer.html">
 <link rel="import" href="../warp10-quantumviz/quantumviz-external-deps.html">
 <link rel="import" href="../warp10-quantumviz/quantumviz-tools.html">
+<link rel="import" href="../warp10-iron/warp10-color-tools.html">
 
 
 <script src="../dygraphs/dygraph-combined-dev.js"></script>
@@ -550,7 +551,7 @@
         if (filteredResponse.params[i].color !== undefined) {
           colors[i] = filteredResponse.params[i].color;
         } else {
-          colors[i] = quantumvizGts.getColor(i);
+          colors[i] = warp10ColorTools.getColor(i);
         }
 
         if (filteredResponse.params[i].interpolate !== undefined) {

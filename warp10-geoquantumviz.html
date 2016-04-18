@@ -20,7 +20,6 @@
     }
   </style>
   <template>
-
     <spinner-widget id="map-spinner" active="{{loading}}" hover container-height="{{mapHeight}}" size="{{_mapSpinnerSize}}" ></spinner-widget>
     <warp10-display-map
       width={{mapWidth}} height={{mapHeight}} data={{data}}
@@ -34,7 +33,7 @@
       show-axis="{{showAxis}}"  tooltip="{{tooltip}}"
       line-width="{{lineWidth}}" reload="{{reload}}"
       current-values="{{currentValues}}" host="{{host}}"
-      content="{{_warpScript}}" data="{{data}}" old-path="{{oldPath}}"
+      warpscript="{{_warpscript}}" data="{{data}}" old-path="{{oldPath}}"
       loading="{{loading}}" annotations-selected-timestamp="{{annotationsSelectedTimestamp}}"
       >
     </warp10-quantumviz>
@@ -138,13 +137,23 @@
         },
         _warpScript: {
           type: String,
-          computed: "_getWarpScript(content)"
+          computed: "_getWarpScript(content, warpscript)"
         },
       },
       created: function(){
       },
       ready: function() {
-        this.content = Polymer.dom(this).innerHTML.replace(/&lt;/g,'<').replace(/&gt;/g,'>');
+      },
+      attached: function() {
+        /*
+        if (!this.content) {
+          this.content = Polymer.dom(this).innerHTML.replace(/&lt;/g,'<').replace(/&gt;/g,'>');
+        } else {
+          this.content =  this.content.replace(/&lt;/g,'<').replace(/&gt;/g,'>');
+        }
+        */
+        this.isAttached = true;
+        this._getWarpScript();
       },
 
       _getMapSpinnerSize: function() {
@@ -152,12 +161,31 @@
         return Math.floor(this.mapHeight * 0.75);
       },
       _getWarpScript: function() {
-        // Setting lat, lon and zoom as script variables
+        if (!this.isAttached) {
+          return;
+        }
         var warpscript = "";
         warpscript += this.mapLat +" 'lat' STORE ";
         warpscript += this.mapLon +" 'lon' STORE ";
         warpscript += this.mapZoom +" 'zoom' STORE ";
-        return warpscript += this.content;
+        if (this.warpscript !== undefined && this.warpscript.length > 0) {
+          // console.debug("[warp10-geoquantumviz] _getWarpScript - attribute warpscript found", this.warpscript);
+          warpscript += this.warpscript.trim()
+        } else {
+          // console.debug("[warp10-geoquantumviz] _getWarpScript - attribute warpscript not found");
+          if (this.content !== undefined && this.content.length > 0) {
+            // console.debug("[warp10-geoquantumviz] _getWarpScript - using content for WarpScript", this.content);
+            warpscript += this.content.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').trim();
+          } else {
+            // console.debug("[warp10-geoquantumviz] _getWarpScript - content not found, using innerHTML",  Polymer.dom(this).innerHTML);
+            warpscript += Polymer.dom(this).innerHTML.replace(/&lt;/g,'<').replace(/&gt;/g,'>').trim();
+          }
+        }
+
+        // Setting lat, lon and zoom as script variables
+        console.debug("[warp10-geoquantumviz] _getWarpScript - Generated warpscript: ", warpscript);
+        this._warpscript = warpscript;
+        return warpscript;
       },
 
     });

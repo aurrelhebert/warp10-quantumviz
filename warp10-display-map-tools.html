@@ -152,7 +152,7 @@
         if (response.params[i].color !== undefined) {
           sl.color = response.params[i].color;
         } else {
-          sl.color = quantumvizGts.getColor(i);
+          sl.color = warp10ColorTools.getColor(i);
         }
 
         // console.debug("[quantumviz-tools] toLeafletMapPaths - color", sl.color);
