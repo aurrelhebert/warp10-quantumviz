@@ -107,6 +107,10 @@
 
       // GTS annotations
       this.annotationsMarkers = [];
+
+      // PositionArrarys
+
+      this.positionArraysMarkers = [];
     },
     ready: function() {
       // console.debug("[warp10-display-map] ready");
@@ -213,13 +217,15 @@
 
     // Private methods
     _updateMapData: function() {
+      this._removeMapData();
+
       this.pathData = warp10DisplayMapTools.toLeafletMapPaths(this.data);
       this.annotationsData = warp10DisplayMapTools.annotationsToLeafletPositions(this.data);
       this.positionData = warp10DisplayMapTools.toLeafletMapPositionArray(this.data);
       // console.debug("[warp10-display-map] Data changed - path data", this.pathData);
       // console.debug("[warp10-display-map] Data changed - position arrays", this.positionData);
 
-      var map = this.$.map.map
+      var map = this.$.map.map;
 
       // console.debug("[warp10-display-map] Data changed - map", this.$.map);
 
@@ -243,7 +249,7 @@
 
       // Create the positions arrays
       for (var i=0; i< this.positionData.length; i++) {
-        this._updatePositionArray(this.positionData[i], map);
+        this.positionArraysMarkers = this._updatePositionArray(this.positionData[i], map);
       }
       // console.debug("[warp10-display-map] Position array added");
 
@@ -324,14 +330,17 @@
 
     _updatePositionArray: function(positionData, map) {
       // console.debug('[warp10-display-map] _plotPositionArray - item', positionData);
+      var positions = [];
       switch (positionData.render) {
         case 'path':
-          L.polyline(positionData.positions, {color: positionData.color, opacity: 1} ).addTo(map);
+          var polyline = L.polyline(positionData.positions, {color: positionData.color, opacity: 1} ).addTo(map);
+          positions.push(polyline);
           break;
         case 'marker':
           var icon = L.MakiMarkers.icon({icon: positionData.key, color: positionData.color, size: "m"});
           for (var j=0; j<positionData.positions.length; j++ ) {
-            L.marker(positionData.positions[j], {icon: icon, opacity: 1} ).addTo(map);
+            var marker = L.marker(positionData.positions[j], {icon: icon, opacity: 1} ).addTo(map);
+            positions.push(marker);
           }
           break;
         case 'coloredWeightedDots':
@@ -344,7 +353,7 @@
           }
           for (var j=0; j<positionData.positions.length; j++ ) {
             // console.debug('[warp10-display-map] _plotPositionArray, coloredWeightedDots', { j: j, gradient: positionData.colorGradient, position: positionData.positions[j]})
-            L.circleMarker(
+            var marker = L.circleMarker(
               positionData.positions[j],{
                 radius: positionData.baseRadius*(parseInt(positionData.positions[j][4])+1),
                 color:  positionData.borderColor,
@@ -354,36 +363,43 @@
                   positionData.colorGradient[positionData.positions[j][5]].b),
                 fillOpacity: 1
               }).addTo(map);
+            positions.push(marker);
           }
           break;
         case 'weightedDots':
           for (var j=0; j<positionData.positions.length; j++ ) {
-            L.circleMarker(
+            var marker = L.circleMarker(
               positionData.positions[j],{
                 radius:positionData.baseRadius*(parseInt(positionData.positions[j][4])+1),
                 color:  positionData.borderColor,
                 fillColor: positionData.color, fillOpacity: 1
               }).addTo(map);
+            positions.push(marker);
           }
           break;
         case 'dots':
         default:
           for (var j=0; j<positionData.positions.length; j++ ) {
-            L.circleMarker(
+            var marker = L.circleMarker(
               positionData.positions[j],{
                 radius: positionData.baseRadius,
                 color: positionData.borderColor,
                 fillColor: positionData.color,
                 fillOpacity: 1
-              }
-            ).addTo(map);
+              }).addTo(map);
+            positions.push(marker);
           }
           break;
       }
+      return positions;
     },
 
     _removeMapData: function() {
+      var map = this.$.map.map;
 
+      map.eachLayer(function (layer) {
+          map.removeLayer(layer);
+      });
     },
 
 

@@ -268,7 +268,10 @@
       }
     },
     _removeChartData: function() {
-
+      console.debug("[warp10-display-chart] _removeChartData");
+      if (this.chart) {
+        this.chart.updateOptions({file: []});
+      }
     },
 
     _updateChartData: function() {

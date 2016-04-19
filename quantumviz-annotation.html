@@ -130,7 +130,7 @@
       }
     },
     _changeDimensions: function() {
-      console.debug("[quantumviz-annotation] _changeDimensions", this.chartArea)
+      // console.debug("[quantumviz-annotation] _changeDimensions", this.chartArea)
       this.$$('.annotation').style.paddingLeft = this.chartArea.x+"px";
       this.$$('svg').style.width = this.chartArea.w+"px";
       this.SVG_MARGIN_LEFT = this.chartArea.x;
@@ -140,7 +140,7 @@
       // console.debug("[quantumviz-annotation] _selectedTimestampChanged", this.selectedTimestamp);
     },
     contentChanged: function() {
-      console.debug("[quantumviz-annotation] Content changed");
+      // console.debug("[quantumviz-annotation] Content changed");
 
       var context = this;
 
@@ -148,7 +148,7 @@
         return
       }
 
-      console.debug("[quantumviz-annotation] Content changed - isAttached");
+      // console.debug("[quantumviz-annotation] Content changed - isAttached");
 
       var svgMarginLeft = this.SVG_MARGIN_LEFT;
       var svgStrokeWidth = this.SVG_STROKE_WIDTH;
@@ -167,7 +167,7 @@
       }
 
 
-      console.debug("[quantumviz-annotation] timeBounds", [this.timeBounds.min, this.timeBounds.max])
+      // console.debug("[quantumviz-annotation] timeBounds", [this.timeBounds.min, this.timeBounds.max])
 
       var scale = d3.scale.linear()
         .domain([this.timeBounds.min, this.timeBounds.max])
@@ -280,7 +280,6 @@
         .enter()
         .append("rect")
         .attr("x", function(d,i) {
-          console.debug("Scale - dx", scale(d.x))
           return scale(d.x) - markerWidth/2 - svgStrokeWidth/2;
         })
         .attr("y", 0)
