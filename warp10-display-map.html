@@ -217,7 +217,10 @@
 
     // Private methods
     _updateMapData: function() {
-      this._removeMapData();
+      if (this.layerGroup) {
+        this._removeMapData();  
+      }
+
 
       this.pathData = warp10DisplayMapTools.toLeafletMapPaths(this.data);
       this.annotationsData = warp10DisplayMapTools.annotationsToLeafletPositions(this.data);
@@ -227,13 +230,15 @@
 
       var map = this.$.map.map;
 
+      this.layerGroup = L.layerGroup().addTo(map);
+
       // console.debug("[warp10-display-map] Data changed - map", this.$.map);
 
 
       var circleRadius = map.getBounds().getSouthWest().distanceTo(map.getBounds().getNorthEast())/30;
       // Create the polylines and the circle marker
       for (var i=0; i< this.pathData.length; i++) {
-        var plottedGts = this._updateGtsPath(this.pathData[i], map);
+        var plottedGts = this._updateGtsPath(this.pathData[i]);
         this.polylinesBeforeCurrentValue.push(plottedGts.beforeCurrentValue);
         this.polylinesAfterCurrentValue.push(plottedGts.afterCurrentValue);
         this.currentValuesMarkers.push(plottedGts.currentValue);
@@ -242,14 +247,14 @@
       // console.debug("[warp10-display-map] GTS path added");
 
       for (var i=0; i< this.annotationsData.length; i++) {
-        this.annotationsMarkers.push(this._updateAnnotation(this.annotationsData[i], map));
+        this.annotationsMarkers.push(this._updateAnnotation(this.annotationsData[i]));
       }
 
       // console.debug("[warp10-display-map] Annotations added");
 
       // Create the positions arrays
       for (var i=0; i< this.positionData.length; i++) {
-        this.positionArraysMarkers = this._updatePositionArray(this.positionData[i], map);
+        this.positionArraysMarkers = this._updatePositionArray(this.positionData[i]);
       }
       // console.debug("[warp10-display-map] Position array added");
 
@@ -262,20 +267,21 @@
       // console.debug("[warp10-display-map] Fit bounds done");
     },
 
-    _updateGtsPath: function(gts, map) {
+    _updateGtsPath: function(gts) {
       var beforeCurrentValue =
         L.polyline(
           warp10DisplayMapTools.pathDataToLeaflet(gts.path, {to:0}), {
             color: gts.color,
             opacity: 1
-          }
-        ).addTo(map);
+        });
+        this.layerGroup.addLayer(beforeCurrentValue);
       var afterCurrentValue = L.polyline(
         warp10DisplayMapTools.pathDataToLeaflet(gts.path, {from:0}), {
           color: gts.color,
           opacity: 0.5
-        }
-      ).addTo(map);
+        });
+        this.layerGroup.addLayer(afterCurrentValue);
+
       // this.polylinesBeforeCurrentValue.push(beforeCurrentValue);
       // this.polylinesAfterCurrentValue.push(afterCurrentValue);
 
@@ -283,10 +289,11 @@
       //Let's verify we have a path... No path, no marker
       if (gts.path[0] !== undefined ) {
         currentValue = L.circleMarker([gts.path[0].lat, gts.path[0].lon],
-          {radius: 5, color:  "#fff", fillColor:  gts.color, fillOpacity: 1}).addTo(map);
+          {radius: 5, color:  "#fff", fillColor:  gts.color, fillOpacity: 1});
       } else {
         currentValue = L.circleMarker();
       }
+      this.layerGroup.addLayer(currentValue);
       // this.currentValuesMarkers.push(currentValue);
       return {
         beforeCurrentValue: beforeCurrentValue,
@@ -295,16 +302,17 @@
       }
     },
 
-    _updateAnnotation(gts, map) {
+    _updateAnnotation(gts) {
       var positions = [];
 
       switch (gts.render) {
         case 'marker':
           var icon = L.MakiMarkers.icon({icon: gts.marker, color: gts.color, size: "m"});
           for (var j=0; j<gts.path.length; j++ ) {
-            var marker = L.marker(gts.path[j], {icon: icon, opacity: 1} ).addTo(map);
+            var marker = L.marker(gts.path[j], {icon: icon, opacity: 1} )
             marker.bindPopup(gts.path[j].val.toString());
-              positions.push(marker);
+            this.layerGroup.addLayer(marker);
+            positions.push(marker);
           }
           break;
         case 'dots':
@@ -318,8 +326,9 @@
                 fillOpacity: 1,
                 timestamp: gts.path[j].ts
               }
-            ).addTo(map);
+            );
             marker.bindPopup(gts.path[j].val.toString());
+            this.layerGroup.addLayer(marker);
             // console.debug("[warp10-display-map] _plotAnnotation - gts", gts);
             positions.push(marker);
           }
@@ -328,18 +337,20 @@
       return positions;
     },
 
-    _updatePositionArray: function(positionData, map) {
+    _updatePositionArray: function(positionData) {
       // console.debug('[warp10-display-map] _plotPositionArray - item', positionData);
       var positions = [];
       switch (positionData.render) {
         case 'path':
-          var polyline = L.polyline(positionData.positions, {color: positionData.color, opacity: 1} ).addTo(map);
+          var polyline = L.polyline(positionData.positions, {color: positionData.color, opacity: 1} );
+          this.layerGroup.addLayer(polyline);
           positions.push(polyline);
           break;
         case 'marker':
           var icon = L.MakiMarkers.icon({icon: positionData.key, color: positionData.color, size: "m"});
           for (var j=0; j<positionData.positions.length; j++ ) {
-            var marker = L.marker(positionData.positions[j], {icon: icon, opacity: 1} ).addTo(map);
+            var marker = L.marker(positionData.positions[j], {icon: icon, opacity: 1} );
+            this.layerGroup.addLayer(marker);
             positions.push(marker);
           }
           break;
@@ -362,7 +373,8 @@
                   positionData.colorGradient[positionData.positions[j][5]].g,
                   positionData.colorGradient[positionData.positions[j][5]].b),
                 fillOpacity: 1
-              }).addTo(map);
+              });
+              this.layerGroup.addLayer(marker);
             positions.push(marker);
           }
           break;
@@ -373,7 +385,8 @@
                 radius:positionData.baseRadius*(parseInt(positionData.positions[j][4])+1),
                 color:  positionData.borderColor,
                 fillColor: positionData.color, fillOpacity: 1
-              }).addTo(map);
+              });
+              this.layerGroup.addLayer(marker);
             positions.push(marker);
           }
           break;
@@ -386,7 +399,8 @@
                 color: positionData.borderColor,
                 fillColor: positionData.color,
                 fillOpacity: 1
-              }).addTo(map);
+              });
+              this.layerGroup.addLayer(marker);
             positions.push(marker);
           }
           break;
@@ -397,9 +411,7 @@
     _removeMapData: function() {
       var map = this.$.map.map;
 
-      map.eachLayer(function (layer) {
-          map.removeLayer(layer);
-      });
+      map.removeLayer(this.layerGroup);
     },
 
 
