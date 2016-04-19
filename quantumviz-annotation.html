@@ -209,7 +209,6 @@
       svg.selectAll("rect")
         .data(annotation.values)
         .attr("x", function(d,i) {
-          console.debug("Scale - dx", scale(d.x))
           return scale(d.x) - markerWidth/2 - svgStrokeWidth/2;
         })
         .attr("y", 0)
