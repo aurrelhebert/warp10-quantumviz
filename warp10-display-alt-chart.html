@@ -131,7 +131,7 @@
        */
       lineWidth: {
         type: Number,
-        value: 2
+        value: 1.5
       },
       /**
        * If true, axis aren't shown
@@ -250,11 +250,11 @@
       }
 
       // Line width
-      var lineWidth = Math.floor(this.lineWidth);
-      if (lineWidth < this._MIN_LINE_WIDTH || this._MAX_LINE_WIDTH > 20) {
-          lineWidth = 2;
+      if (this.lineWidth < this._MIN_LINE_WIDTH || this._MAX_LINE_WIDTH > 20) {
+          this.lineWidth = 1.5;
       }
-
+       console.debug("[warp10-display-chart] configure -lineWidth", this.lineWidth);
+      
     },
 
     _isTooltipHidden(tooltip) {
@@ -570,7 +570,7 @@
         } else if (response.globalParams.lineWidth !== undefined){
           strokeWidth[i] = filteredResponse.globalParams.strokeWidth;
         } else {
-          strokeWidth[i] = 2;
+          strokeWidth[i] = this.lineWidth;
         }
       }
 
