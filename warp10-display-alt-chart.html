@@ -585,11 +585,11 @@
             axisLineColor:'rgb(196, 196, 196)'
           }
         },
-        highlightCircleSize: 4,
+        highlightCircleSize: context.lineWidth+3,
         highlightSeriesOpts: {
-          strokeWidth: 3,
+          strokeWidth: context.lineWidth+1,
           strokeBorderWidth: 1,
-          highlightCircleSize: 6
+          highlightCircleSize: context.lineWidth+3
         },
         drawCallback: function(me, initial) {
           context.chartArea = me.getArea();
