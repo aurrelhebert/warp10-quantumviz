@@ -131,7 +131,7 @@
        */
       lineWidth: {
         type: Number,
-        value: 1.5
+        value: 1.75
       },
       /**
        * If true, axis aren't shown
@@ -573,6 +573,7 @@
           strokeWidth[i] = this.lineWidth;
         }
       }
+        console.debug("[warp10-display-chart] drawCallback strokeWidth", strokeWidth);
 
       var options = {
         file: sparklines,
