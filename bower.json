@@ -23,7 +23,7 @@
   ],
   "dependencies": {
     "polymer": "~1.4.0",
-    "warp10-iron": "cityzendata/warp10-iron#1.0.9",
+    "warp10-iron": "cityzendata/warp10-iron#1.0.12",
     "nvd3": "LostInBrittany/nvd3#v1.8.2.1",
     "dygraphs": "~1.1.1",
     "leaflet-map": "leaflet-map#1.2.0",
