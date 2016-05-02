@@ -34,7 +34,7 @@
         type: Object
       },
       annotations: {
-        computed: "getAnnotations(data)"
+        computed: "getAnnotations(data,_newData)"
       },
       timeBounds: {
         type: Object
@@ -51,13 +51,20 @@
         notify: true,
         observer: "_selectedTimestampChanged",
         value: -1
+      },
+      _newData: {
+        type: Number,
+        value: 0
       }
     },
+    observers: [
+      'dataChanged(data.*)'
+    ],
     ready: function() {
     },
     attached: function() {
       this.attached = true;
-      // console.debug("[quantumviz-annotations] width", this.width);
+      console.debug("[quantumviz-annotations] width", this.width);
     },
     _selectedTimestampChanged: function() {
       // console.debug("[quantumviz-annotations] _selectedTimestampChanged", this.selectedTimestamp);
@@ -72,8 +79,12 @@
     },
     getAnnotations: function(){
       var annotations = quantumvizGts.getAnnotations(this.data)
-      //console.debug("[quantumviz-annotations] annotations", annotations);
+      console.debug("[quantumviz-annotations] getAnnotations", annotations);
       return annotations;
+    },
+    dataChanged: function(){
+      // console.debug("[quantumviz-annotations] dataChanged", this.data);
+      this._newData++;
     }
   });
 </script>

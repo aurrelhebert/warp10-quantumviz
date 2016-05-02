@@ -112,21 +112,39 @@
   /***********************************************************************************
   * Transforms quantumviz response object into annotation objects
   ***********************************************************************************/
-  quantumvizGts.getAnnotations = function(data) {
+  quantumvizGts.getAnnotations = function(data) {    
 
+
+    // console.debug("[warp10-quantumviz-tools] getAnnotations - data", data);
+    
     if (!quantumvizGts.isValidResponse(data)) {
       return [];
     }
-    var response = data[0];
+    
+    
+    var response = {};
+    if (quantumvizGts.isValidGtsListResponse(data)) {
+      response.gts = data;
+      response.params = [];
+      for (var i in response.gts) {
+        response.params[i] = {}
+      }
+      response.globalParams = {};
+    } else {
+      response = data[0];
+    }
 
     if (!gtsTools.isArray(response.gts)) {
       return []
     }
+        
+    // console.debug("[warp10-quantumviz-tools] getAnnotations - response", response);
 
     var annotations = [];
 
     for (var i=0; i< response.gts.length; i++) {
       // Let's verify if it's a GTS to plot
+      
       if (gtsTools.isGtsToAnnotate(response.gts[i])) {
         var annotation = quantumvizGts.gtsToNvd3(response.gts[i]);
         if ((response.params !== undefined)
@@ -145,6 +163,7 @@
       }
     }
 
+    // console.debug("[warp10-quantumviz-tools] getAnnotations - annotations",annotations);
     return annotations;
   };
 

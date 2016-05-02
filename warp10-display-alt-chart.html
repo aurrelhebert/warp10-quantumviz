@@ -262,7 +262,7 @@
       if (this.lineWidth < this._MIN_LINE_WIDTH || this._MAX_LINE_WIDTH > 20) {
           this.lineWidth = 1.5;
       }
-       console.debug("[warp10-display-chart] configure -lineWidth", this.lineWidth);
+       // console.debug("[warp10-display-chart] configure -lineWidth", this.lineWidth);
       
     },
 
@@ -277,19 +277,19 @@
       }
     },
     _removeChartData: function() {
-      console.debug("[warp10-display-chart] _removeChartData");
+      // console.debug("[warp10-display-chart] _removeChartData");
       if (this.chart) {
         this.chart.updateOptions({file: []});
       }
     },
 
     _updateChartData: function() {
-      console.debug("[warp10-display-chart] _updateChartData", this.data);
+      // console.debug("[warp10-display-chart] _updateChartData", this.data);
       this._data2dygraphs(this.data);
     },
     _tooltipContent: function() {
 
-      console.debug("[warp10-display-chart] _tooltipContent", this.currentValues)
+      // console.debug("[warp10-display-chart] _tooltipContent", this.currentValues)
       var d = this.currentValues;
 
       if (d === null) {
@@ -387,9 +387,9 @@
       
       //console.debug("[warp10-display-chart] _tooltipContent - window.innerWidth",  window.innerWidth);
       //console.debug("[warp10-display-chart] _tooltipContent - chart width",  this.$$("#chart").style.width);
-      console.debug("[warp10-display-chart] _tooltipContent - chart getBoundingClientRect()",  this.$$("#chart").getBoundingClientRect().width);
-      console.debug("[warp10-display-chart] _tooltipContent - chart getBoundingClientRect()",  this.$$("#chart").getBoundingClientRect());
-      console.debug("[warp10-display-chart] _tooltipContent - chart-tooltip getBoundingClientRect()",  this.$$(".chart-tooltip").getBoundingClientRect().width);
+      // console.debug("[warp10-display-chart] _tooltipContent - chart getBoundingClientRect()",  this.$$("#chart").getBoundingClientRect().width);
+      // console.debug("[warp10-display-chart] _tooltipContent - chart getBoundingClientRect()",  this.$$("#chart").getBoundingClientRect());
+      // console.debug("[warp10-display-chart] _tooltipContent - chart-tooltip getBoundingClientRect()",  this.$$(".chart-tooltip").getBoundingClientRect().width);
 
 
 
@@ -422,7 +422,7 @@
               top:   this.$$(".chart-tooltip").style.top
             }
 
-            console.debug("[warp10-display-chart] _tooltipContent - tooltip to center", deb);
+            // console.debug("[warp10-display-chart] _tooltipContent - tooltip to center", deb);
 
           } else {
             // Tooltip to the left
@@ -443,7 +443,7 @@
               top:   this.$$(".chart-tooltip").style.top
             }
 
-            console.debug("[warp10-display-chart] _tooltipContent - tooltip to the left", deb);
+            // console.debug("[warp10-display-chart] _tooltipContent - tooltip to the left", deb);
           }
       } else {
         // Tooltip to the right
@@ -463,7 +463,7 @@
           width:   tooltipWidth,
         }
 
-        console.debug("[warp10-display-chart] _tooltipContent - tooltip to the right", deb);
+        // console.debug("[warp10-display-chart] _tooltipContent - tooltip to the right", deb);
 
       }
 
@@ -528,7 +528,7 @@
       var context = this;
 
       if (!quantumvizGts.isValidResponse(data)) {
-        console.error("[warp10-display-chart] Received invalid data", data);
+        // console.error("[warp10-display-chart] Received invalid data", data);
         return;
       }
       
@@ -558,7 +558,7 @@
         }
       }
 
-      console.debug("[warp10-display-chart] _data2dygraphs - Filtered data to plot", filteredResponse);
+      // console.debug("[warp10-display-chart] _data2dygraphs - Filtered data to plot", filteredResponse);
 
       var sparklines = this._gts2dygraphs(filteredResponse.gts);
 
