@@ -231,12 +231,17 @@
   * Returns true if @data is a valid GTS list response object
   ***********************************************************************************/
   quantumvizGts.isValidGtsListResponse = function(response) {
-    if (!gtsTools.isArray(response) || (response.length != 1)) {
-      console.error("Response isn't an Array or it has more than 1 element: ",response);
+    if (!gtsTools.isArray(response) || response.length == 0) {
+      console.debug("[warp10-quantumviz-tools] isValidGtsListResponse false - Response isn't an Array: ",response);
       return false;
     }
-    response = response[0];
-    return   gtsTools.isGts(response);
+    for (var i in response) {
+      if (!gtsTools.isGts(response[i])) {
+        console.debug("[warp10-quantumviz-tools] isValidGtsListResponse false - Invalid GTS: ",response[i]);
+        return false;
+      }
+    }    
+    return  true;
   }
   /***********************************************************************************
   * Returns true if @data is a valid detailed quantumviz response object
@@ -244,23 +249,23 @@
   quantumvizGts.isValidDetailedResponse = function(response) {
 
     if (!gtsTools.isArray(response) || (response.length != 1)) {
-      console.error("Response isn't an Array or it has more than 1 element: ",response);
+      console.debug("[warp10-quantumviz-tools] isValidDetailedResponse false - Response isn't an Array or it has more than 1 element: ",response);
       return false;
     }
     response = response[0];
 
     if ((response.gts === undefined) || (response.params == undefined)) {
-      console.error("Response hasn't gts and/or params components",response);
+      console.debug("[warp10-quantumviz-tools] isValidDetailedResponse false - Response hasn't gts and/or params components",response);
       return false;
     }
 
     if (!gtsTools.isArray(response.gts) || !gtsTools.isArray(response.params)) {
-      console.error("Response's gts and/or params components aren't arrays",response);
+      console.debug("[warp10-quantumviz-tools] isValidDetailedResponse false - Response's gts and/or params components aren't arrays",response);
       return false;
     }
 
     if (response.gts.length != response.params.length) {
-      console.error("Response's gts and params components haven't the same length",response);
+      console.debug("[warp10-quantumviz-tools] isValidDetailedResponse false - Response's gts and params components haven't the same length",response);
       return false;
     }
 
