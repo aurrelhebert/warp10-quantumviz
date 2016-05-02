@@ -20,8 +20,7 @@
       }
       .chart-tooltip {
           position: absolute;
-          min-width: 400px;
-          max-width: 100%;
+          width: var(--tooltip-width, 400px);
           height: auto;
           padding: 10px;
           background-color: rgba(255, 255, 255, 0.85);
@@ -49,6 +48,7 @@
         height: 10px;
         border-radius: 5px;
         margin-right: 5px;
+        margin-top: 5px;
       }
       :host ::content tr.highlight {
         background-color: #ffffa4;
@@ -71,7 +71,7 @@
         padding-right: 10px;
         word-wrap: break-word;
         word-break: break-word;
-        width: {{_keyWidth}};
+        width: calc( var(--tooltip-width, 400px) - 50px);
       }
       :host ::content .chart-tooltip .value {
         text-align: right;
@@ -178,10 +178,6 @@
         notify: true,
         value: ""
       },
-      _keyWidth: {
-        type: String,
-        value: "350px"
-      },
       // Constants
       _MIN_LINE_WIDTH: 1,
       _MAX_LINE_WIDTH: 20
@@ -204,6 +200,10 @@
       if (this.data != null) {
         this.dataChanged()
       }
+      // tooltip key width       
+      this.customStyle['--tooltip-width'] = Math.max(400,this.$.chart.getBoundingClientRect().width * 2 / 3).toString()+"px";
+      this.updateStyles();
+      
     },
 
     // Observers
@@ -384,23 +384,31 @@
       if (d.footer !== undefined)
           html += "<div class='footer'>" + d.footer + "</div>";
 
-      // Key length 
-      this._keyWidth = Math.max(350,this.$.chart.getBoundingClientRect().width / 2).toString()+"px";
-      // console.debug("[warp10-display-chart]  _keyWidth",  this._keyWidth);
-      
       
       //console.debug("[warp10-display-chart] _tooltipContent - window.innerWidth",  window.innerWidth);
       //console.debug("[warp10-display-chart] _tooltipContent - chart width",  this.$$("#chart").style.width);
-      //console.debug("[warp10-display-chart] _tooltipContent - chart getBoundingClientRect()",  this.$$("#chart").getBoundingClientRect().width);
+      console.debug("[warp10-display-chart] _tooltipContent - chart getBoundingClientRect()",  this.$$("#chart").getBoundingClientRect().width);
+      console.debug("[warp10-display-chart] _tooltipContent - chart getBoundingClientRect()",  this.$$("#chart").getBoundingClientRect());
+      console.debug("[warp10-display-chart] _tooltipContent - chart-tooltip getBoundingClientRect()",  this.$$(".chart-tooltip").getBoundingClientRect().width);
 
+
+
+      var windowWidth = window.innerWidth;
+      var chartLeftOffset = this.$.chart.getBoundingClientRect().left;
+      var chartWidth = this.$.chart.getBoundingClientRect().width;
+      var xCoord = this.currentValues.xCoord;
+      var yCoord = this.currentValues.yCoord;
+      var tooltipWidth = this.$$(".chart-tooltip").getBoundingClientRect().width
+      
+      
 
       // Left, right or centerer
-      if (this.currentValues.xCoord + this.$$(".chart-tooltip").getBoundingClientRect().width +20 > this.$$("#chart").getBoundingClientRect().width) {
-          if (this.currentValues.xCoord - this.$$(".chart-tooltip").getBoundingClientRect().width - 20 < 0  ) {
+      if ( chartLeftOffset + xCoord + tooltipWidth +20 > windowWidth ) {
+          if ( chartLeftOffset + xCoord - tooltipWidth -20 < 0 ) {
             // Tooltip centered
-            this.$$(".chart-tooltip").style.left = (this.currentValues.xCoord - this.$.chart.getBoundingClientRect().width/2)+"px";
+            this.$$(".chart-tooltip").style.left = (xCoord - tooltipWidth/2)+"px";
             this.$$(".chart-tooltip").style.right = "auto";
-            this.$$(".chart-tooltip").style.top = (this.currentValues.yCoord + 50)+"px";
+            this.$$(".chart-tooltip").style.top = (yCoord + 50)+"px";
 
 
             var deb = {
@@ -414,14 +422,14 @@
               top:   this.$$(".chart-tooltip").style.top
             }
 
-            // console.debug("[warp10-display-chart] _tooltipContent - tooltip to center", deb);
+            console.debug("[warp10-display-chart] _tooltipContent - tooltip to center", deb);
 
           } else {
             // Tooltip to the left
 
             this.$$(".chart-tooltip").style.left = "auto";
-            this.$$(".chart-tooltip").style.right = (this.$.chart.getBoundingClientRect().width - this.currentValues.xCoord + 20)+"px";
-            this.$$(".chart-tooltip").style.top = (this.currentValues.yCoord - 50)+"px";
+            this.$$(".chart-tooltip").style.right = ( chartWidth - xCoord + 20)+"px";
+            this.$$(".chart-tooltip").style.top = (yCoord - 50)+"px";
 
 
             var deb = {
@@ -435,13 +443,13 @@
               top:   this.$$(".chart-tooltip").style.top
             }
 
-            // console.debug("[warp10-display-chart] _tooltipContent - tooltip to the left", deb);
+            console.debug("[warp10-display-chart] _tooltipContent - tooltip to the left", deb);
           }
       } else {
         // Tooltip to the right
-        this.$$(".chart-tooltip").style.right = "auto";
-        this.$$(".chart-tooltip").style.left = (this.currentValues.xCoord +20)+"px";
-        this.$$(".chart-tooltip").style.top =  (this.currentValues.yCoord - 50)+"px";
+        //this.$$(".chart-tooltip").style.right = "auto";
+        this.$$(".chart-tooltip").style.left = (xCoord +20)+"px";
+        this.$$(".chart-tooltip").style.top =  (yCoord - 50)+"px";
 
         var deb = {
           innerWidth : window.innerWidth ,
@@ -451,10 +459,11 @@
           sum: this.currentValues.xCoord + this.$$(".chart-tooltip").getBoundingClientRect().width +20,
           left: this.$$(".chart-tooltip").style.left,
           right: this.$$(".chart-tooltip").style.right,
-          top:   this.$$(".chart-tooltip").style.top
+          top:   this.$$(".chart-tooltip").style.top,          
+          width:   tooltipWidth,
         }
 
-        // console.debug("[warp10-display-chart] _tooltipContent - tooltip to the right", deb);
+        console.debug("[warp10-display-chart] _tooltipContent - tooltip to the right", deb);
 
       }
 
