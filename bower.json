@@ -27,7 +27,7 @@
     "nvd3": "LostInBrittany/nvd3#v1.8.2.1",
     "dygraphs": "~1.1.1",
     "leaflet-map": "leaflet-map#1.2.0",
-    "Leaflet.MakiMarkers": "~1.0.1",
+    "Leaflet.MakiMarkers": "~2.0.0",
     "spinner-widget": "LostInBrittany/spinner-widget#~1.0.3"
   },
   "resolutions": {
